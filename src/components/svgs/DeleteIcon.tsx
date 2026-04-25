@@ -1,0 +1,10 @@
+export default function DeleteIcon() {
+    return (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className='cursor-pointer'>
+            <path d="M2 4H14" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12.6663 4V13.3333C12.6663 14 11.9997 14.6667 11.333 14.6667H4.66634C3.99967 14.6667 3.33301 14 3.33301 13.3333V4" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M5.33301 3.99998V2.66665C5.33301 1.99998 5.99967 1.33331 6.66634 1.33331H9.33301C9.99967 1.33331 10.6663 1.99998 10.6663 2.66665V3.99998" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+
+    )
+}

@@ -1,0 +1,76 @@
+<h1 className='text-[#1F2937] font-[700] text-[17px] leading-[28px] py-6'>Recent Activity</h1>
+                <table className='w-full'>
+                    <thead>
+                        <tr>
+                            <th className='text-[#333333] text-[14px] leading-[20px] font-semibold text-left p-[10px] w-[174px] h-[112.67px]'>Story/Song</th>
+                            <th className='text-[#333333] text-[14px] leading-[20px] font-semibold text-left p-[10px] w-[174px] h-[112.67px]'>Type</th>
+                            <th className='text-[#333333] text-[14px] leading-[20px] font-semibold text-left p-[10px] w-[174px] h-[112.67px]'>Characters</th>
+                            <th className='text-[#333333] text-[14px] leading-[20px] font-semibold text-left p-[10px] w-[174px] h-[112.67px]'>Places</th>
+                            <th className='text-[#333333] text-[14px] leading-[20px] font-semibold text-left p-[10px] w-[174px] h-[112.67px]'>Items</th>
+                            <th className='text-[#333333] text-[14px] leading-[20px] font-semibold text-left p-[10px] w-[174px] h-[112.67px]'>Theme</th>
+                            <th className='text-[#333333] text-[14px] leading-[20px] font-semibold text-left p-[10px] w-[174px] h-[112.67px]'>Titles</th>
+                            <th className='text-[#333333] text-[14px] leading-[20px] font-semibold text-left p-[10px] w-[174px] h-[112.67px]'>Created Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {
+                            activityTableData.map((activityTable, index) => <tr key={index}>
+                                <td className='p-[10px]  text-left '>
+                                    <p className={`${storySongs[activityTable.story_song as StorySongs]}`}>{activityTable.story_song}</p>
+                                </td>
+                                <td className='p-[10px] text-left '>
+                                    <ul className="flex flex-wrap gap-[10px]">
+                                        <li className="flex items-center gap-[5px]">
+                                            <span>{activityTable.type_image}</span>
+                                            <p className='text-[#333333] text-[14px] leading-[20px] inter-font'>{activityTable.type}</p>
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td className="p-[10px] text-left">
+                                    <ul className="flex flex-wrap gap-[10px]">
+                                        {activityTable.characters.map((character, charIndex) => (
+                                            <li key={charIndex} className="flex items-center gap-[5px]">
+                                                <span>{character.image}</span>
+                                                <p className="text-[#333333] text-[14px] leading-[20px] inter-font">{character.name}</p>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </td>
+                                <td className="p-[10px] text-left">
+                                    <ul className="flex flex-wrap gap-[10px]">
+                                        {activityTable.places.map((place, charIndex) => (
+                                            <li key={charIndex} className="flex items-center gap-[5px]">
+                                                <span>{place.image}</span>
+                                                <p className="text-[#333333] text-[14px] leading-[20px] inter-font">{place.name}</p>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </td>
+                                <td className="p-[10px] text-left">
+                                    <ul className="flex flex-wrap gap-[10px]">
+                                        {activityTable.items.map((item, charIndex) => (
+                                            <li key={charIndex} className="flex items-center gap-[5px]">
+                                                <span>{item.image}</span>
+                                                <p className="text-[#333333] text-[14px] leading-[20px] inter-font">{item.name}</p>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </td>
+                                <td className='p-[10px] text-left '>
+                                    <ul className="flex flex-wrap gap-[10px]">
+                                        <li className="flex items-center gap-[5px]">
+                                            <span>{activityTable.theme_image}</span>
+                                            <p className='text-[#333333] text-[14px] leading-[20px] inter-font'>{activityTable.theme}</p>
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td className='p-[10px] text-left text-[#333333] text-[14px] leading-[20px] inter-font truncate'>
+                                        {activityTable.titles}
+                                </td>
+                                <td className='p-[10px] text-left text-[#333333] text-[14px] leading-[20px] inter-font'>
+                                        {activityTable.created_date}
+                                </td>
+                            </tr>)
+                        }
+                    </tbody>
+                </table>
