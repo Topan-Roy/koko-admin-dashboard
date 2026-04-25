@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import SideBar from '../ui/SideBar'
 import AdminHeader from '../ui/AdminHeader'
 import RevenueIcon from '../svgs/RevenueIcon'

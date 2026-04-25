@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import BarComponent from "./components/BarComponent"
 import LineChart from "./components/LineChart"
 import SideBar from "../ui/SideBar"
 import AdminHeader from "../ui/AdminHeader"
 import { cardData } from "./data/cardData"
-import UserActivityIcon from "../svgs/UserActivityIcon"
+
 import AreaChartComponent from "./components/AreaChartComponent"
-import { userTableData } from "./data/userTableData"
+
 import api from '../../Context/api'
 
 export const description = "An area chart with axes"
