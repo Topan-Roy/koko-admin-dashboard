@@ -48,7 +48,7 @@ export default function StoryComponent({ userId }: StoryComponentProps) {
 
     // Debounced search
     const debouncedFetch = useCallback(
-        debounce((t, s, p) => fetchActivity(t, s, p), 500),
+        debounce((t: string, s: string, p: number) => fetchActivity(t, s, p), 500),
         []
     );
 
@@ -97,7 +97,7 @@ export default function StoryComponent({ userId }: StoryComponentProps) {
                 <div className='bg-[#F9FAFB] border-[1px] border-[#E5E7EB] p-[17px] w-full rounded-[6px]'>
                     <div className='flex items-center justify-between'>
                         <p className='text-[#374151] text-[11.9px] leading-[20px] font-[400] inter-font'>Coins Used</p>
-                        <CoinIcon />
+                        <CoinIcon color="#9458E8" />
                     </div>
                     <h1 className='text-[#000000] font-[700] text-[20px] leading-[32px] my-2 inter-font'>{metadata?.coinCount || 0}</h1>
                     <p className='text-[#6B7280] text-[10.2px] leading-[16px] font-[400] inter-font'>Total balance</p>
@@ -176,11 +176,12 @@ export default function StoryComponent({ userId }: StoryComponentProps) {
                     )}
                 </div>
 
-                {pagination && pagination.totalPages > 1 && (
+                {pagination && pagination.totalResults > 0 && (
                     <div className='mt-6 flex justify-center'>
                         <Pagination 
+                            totalItems={pagination.totalResults}
+                            itemsPerPage={limit}
                             currentPage={page} 
-                            totalPages={pagination.totalPages} 
                             onPageChange={(p) => setPage(p)} 
                         />
                     </div>

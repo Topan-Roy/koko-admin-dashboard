@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/chart"
 
 import type { ChartConfig } from "@/components/ui/chart"
-import UserActivityIcon from '@/components/svgs/UserActivityIcon'
 
 interface AreaChartComponentProps {
     data: any[];

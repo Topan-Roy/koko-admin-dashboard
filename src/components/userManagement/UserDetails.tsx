@@ -108,7 +108,7 @@ export default function UserDetails() {
 
   const showTapComponent = {
     [TapData.UserDetails]: <UserDetailsTable userData={userData} />,
-    [TapData.Activity]: <UserDetailsActivity userData={userData} />,
+    [TapData.Activity]: <UserDetailsActivity />,
     [TapData.Profiles]: <Profile userData={userData} />,
   };
 
