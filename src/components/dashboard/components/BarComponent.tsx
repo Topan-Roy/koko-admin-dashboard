@@ -33,6 +33,7 @@ export default function BarComponent({ data }: BarComponentProps) {
           axisLine={true}
           tickMargin={8}
           tickCount={6}
+          allowDecimals={false}
           tickFormatter={(value) => `$${value}`}
         />
         <ChartTooltip content={<ChartTooltipContent />} />

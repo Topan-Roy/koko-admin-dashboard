@@ -51,6 +51,7 @@ export default function ChartLineMultiple({ data }: LineChartProps) {
               axisLine={true}
               tickMargin={8}
               tickCount={6}
+              allowDecimals={false}
             />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <Line
