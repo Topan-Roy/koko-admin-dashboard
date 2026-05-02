@@ -15,7 +15,6 @@ export default function CoinManagementAnalytics() {
   const [loadingTable, setLoadingTable] = useState(true);
   const [period, setPeriod] = useState("monthly");
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
 
   const fetchOverview = async () => {
@@ -43,7 +42,6 @@ export default function CoinManagementAnalytics() {
         },
       });
       setRecentBuyers(response.data.data.results);
-      setTotalPages(response.data.data.totalPages);
       setTotalResults(response.data.data.totalResults);
     } catch (error) {
       console.error("Failed to fetch recent buyers:", error);
@@ -278,7 +276,6 @@ export default function CoinManagementAnalytics() {
             <div className="py-4">
               <Pagination
                 currentPage={page}
-                totalPages={totalPages}
                 onPageChange={setPage}
                 totalItems={totalResults}
                 itemsPerPage={10}
