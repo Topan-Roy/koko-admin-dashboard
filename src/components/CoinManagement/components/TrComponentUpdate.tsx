@@ -51,6 +51,7 @@ export default function TrComponentUpdate({
           return;
         }
         const bodyToSend = {
+          package_id: formData.package_id.trim(),
           name: formData.name.trim(),
           price: Number(formData.price),
           currency: formData.currency || "GBP",
@@ -60,6 +61,7 @@ export default function TrComponentUpdate({
         await api.patch(`/api/token-packages/${packageData._id}`, bodyToSend);
       } else {
         const payload: Record<string, unknown> = {
+          package_id: formData.package_id.trim(),
           name: formData.name.trim(),
           price: Number(formData.price),
           currency: formData.currency || "GBP",
@@ -104,25 +106,41 @@ export default function TrComponentUpdate({
         </h2>
         <hr className="h-[1px] bg-[#E5E7EB] mb-4 text-[#EBEBEB]" />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-center justify-start gap-4 md:flex-nowrap flex-wrap">
-            <div className="w-full">
-              <label className="font-[500] text-[11.9px] leading-5 inter-font" htmlFor="edit-name">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+            <div className="space-y-1.5">
+              <label className="font-[600] text-[13px] text-[#374151] inter-font" htmlFor="edit-package-id">
+                Package ID <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.package_id}
+                onChange={(e) => setFormData({ ...formData, package_id: e.target.value })}
+                className="rounded-[8px] border border-[#D1D5DB] px-4 py-2.5 w-full outline-none focus:border-[#9458E8] focus:ring-2 focus:ring-[#9458E8]/10 transition-all text-[14px]"
+                id="edit-package-id"
+                placeholder="e.g. basic_plan"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-[600] text-[13px] text-[#374151] inter-font" htmlFor="edit-name">
                 Display Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="my-[5px] rounded-[6px] border-[1px] border-[#D1D5DB] py-[7px] pl-[13px] w-full outline-none focus:border-purple-500"
+                className="rounded-[8px] border border-[#D1D5DB] px-4 py-2.5 w-full outline-none focus:border-[#9458E8] focus:ring-2 focus:ring-[#9458E8]/10 transition-all text-[14px]"
                 id="edit-name"
                 required
               />
             </div>
+
             {isSubscription && (
               <>
-                <div className="w-full">
-                  <label className="font-[500] text-[11.9px] leading-5 inter-font">Billing</label>
+                <div className="space-y-1.5">
+                  <label className="font-[600] text-[13px] text-[#374151] inter-font">Billing Interval</label>
                   <select
                     value={formData.billing_interval}
                     onChange={(e) =>
@@ -131,113 +149,123 @@ export default function TrComponentUpdate({
                         billing_interval: e.target.value as "monthly" | "annual",
                       })
                     }
-                    className="my-[5px] rounded-[6px] border-[1px] border-[#D1D5DB] py-[7px] pl-[13px] w-full outline-none focus:border-purple-500"
+                    className="rounded-[8px] border border-[#D1D5DB] px-4 py-2.5 w-full outline-none focus:border-[#9458E8] focus:ring-2 focus:ring-[#9458E8]/10 transition-all text-[14px] bg-white cursor-pointer"
                   >
                     <option value="monthly">Monthly</option>
                     <option value="annual">Annual</option>
                   </select>
                 </div>
-                <div className="w-full flex items-end pb-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
+
+                <div className="flex items-center space-x-2 pt-8">
+                  <label className="flex items-center gap-3 cursor-pointer group">
                     <input
                       type="checkbox"
                       checked={formData.unlimited_tokens}
                       onChange={(e) =>
                         setFormData({ ...formData, unlimited_tokens: e.target.checked })
                       }
-                      className="w-4 h-4 cursor-pointer"
+                      className="w-5 h-5 rounded border-[#D1D5DB] text-[#9458E8] focus:ring-[#9458E8] cursor-pointer transition-all"
                     />
-                    <span className="font-[400] text-[11.9px] text-[#374151]">Unlimited tokens</span>
+                    <span className="font-[500] text-[14px] text-[#374151] group-hover:text-[#111827]">Unlimited tokens</span>
                   </label>
                 </div>
-                <div className="w-full">
-                  <label className="font-[500] text-[11.9px] leading-5 inter-font">Duration (days)</label>
+
+                <div className="space-y-1.5">
+                  <label className="font-[600] text-[13px] text-[#374151] inter-font">Duration (days)</label>
                   <input
                     type="number"
                     value={formData.duration_days}
                     onChange={(e) => setFormData({ ...formData, duration_days: e.target.value })}
-                    className="my-[5px] rounded-[6px] border-[1px] border-[#D1D5DB] py-[7px] pl-[13px] w-full outline-none focus:border-purple-500"
+                    className="rounded-[8px] border border-[#D1D5DB] px-4 py-2.5 w-full outline-none focus:border-[#9458E8] focus:ring-2 focus:ring-[#9458E8]/10 transition-all text-[14px]"
                     min="1"
+                    placeholder="e.g. 30"
                   />
                 </div>
               </>
             )}
+
             {(!isSubscription || !formData.unlimited_tokens) && (
-              <div className="w-full">
-                <label className="font-[500] text-[11.9px] leading-5 inter-font" htmlFor="edit-token_count">
+              <div className="space-y-1.5">
+                <label className="font-[600] text-[13px] text-[#374151] inter-font" htmlFor="edit-token_count">
                   Token count {tokenRequired ? <span className="text-red-500">*</span> : ""}
                 </label>
                 <input
                   type="number"
                   value={formData.token_count}
                   onChange={(e) => setFormData({ ...formData, token_count: e.target.value })}
-                  className="my-[5px] rounded-[6px] border-[1px] border-[#D1D5DB] py-[7px] pl-[13px] w-full outline-none focus:border-purple-500"
+                  className="rounded-[8px] border border-[#D1D5DB] px-4 py-2.5 w-full outline-none focus:border-[#9458E8] focus:ring-2 focus:ring-[#9458E8]/10 transition-all text-[14px]"
                   id="edit-token_count"
                   min="1"
                   required={tokenRequired}
                 />
               </div>
             )}
-            <div className="w-full">
-              <label className="font-[500] text-[11.9px] leading-5 inter-font" htmlFor="edit-price">
+
+            <div className="space-y-1.5">
+              <label className="font-[600] text-[13px] text-[#374151] inter-font" htmlFor="edit-price">
                 Price <span className="text-red-500">*</span>
               </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                className="my-[5px] rounded-[6px] border-[1px] border-[#D1D5DB] py-[7px] pl-[13px] w-full outline-none focus:border-purple-500"
-                id="edit-price"
-                min="0.01"
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-[14px]">{formData.currency === 'GBP' ? '£' : '$'}</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                  className="rounded-[8px] border border-[#D1D5DB] pl-8 pr-4 py-2.5 w-full outline-none focus:border-[#9458E8] focus:ring-2 focus:ring-[#9458E8]/10 transition-all text-[14px]"
+                  id="edit-price"
+                  min="0.01"
+                  required
+                />
+              </div>
             </div>
-            <div className="w-full">
-              <label className="font-[500] text-[11.9px] leading-5 inter-font" htmlFor="edit-currency">
+
+            <div className="space-y-1.5">
+              <label className="font-[600] text-[13px] text-[#374151] inter-font" htmlFor="edit-currency">
                 Currency
               </label>
               <input
                 type="text"
                 value={formData.currency}
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                className="my-[5px] rounded-[6px] border-[1px] border-[#D1D5DB] py-[7px] pl-[13px] w-full outline-none focus:border-purple-500"
+                className="rounded-[8px] border border-[#D1D5DB] px-4 py-2.5 w-full outline-none focus:border-[#9458E8] focus:ring-2 focus:ring-[#9458E8]/10 transition-all text-[14px]"
                 id="edit-currency"
               />
             </div>
-            <div className="w-full">
-              <label className="font-[500] text-[11.9px] leading-5 inter-font" htmlFor="edit-sort_order">
+
+            <div className="space-y-1.5">
+              <label className="font-[600] text-[13px] text-[#374151] inter-font" htmlFor="edit-sort_order">
                 Sort order
               </label>
               <input
                 type="number"
                 value={formData.sort_order}
                 onChange={(e) => setFormData({ ...formData, sort_order: Number(e.target.value) })}
-                className="my-[5px] rounded-[6px] border-[1px] border-[#D1D5DB] py-[7px] pl-[13px] w-full outline-none focus:border-purple-500"
+                className="rounded-[8px] border border-[#D1D5DB] px-4 py-2.5 w-full outline-none focus:border-[#9458E8] focus:ring-2 focus:ring-[#9458E8]/10 transition-all text-[14px]"
                 id="edit-sort_order"
                 min="0"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-4 my-[17px]">
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-100 mt-8">
             <button
               type="button"
               onClick={() => setShowUpdate(false)}
               disabled={loading}
-              className="cursor-pointer px-[17px] py-[9px] rounded-[6px] border-[1px] border-[#A43EE7] inter-font font-[400] text-[11.9px] leading-5 text-[#000000] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 rounded-[8px] border border-gray-200 font-[500] text-[14px] text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="cursor-pointer px-[17px] py-[9px] rounded-[6px] inter-font font-[400] text-[11.9px] leading-5 text-[#FFFFFF] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-8 py-2.5 rounded-[8px] font-[600] text-[14px] text-white hover:shadow-lg hover:shadow-purple-200 transition-all disabled:opacity-50 flex items-center gap-2"
               style={{ background: "linear-gradient(to right, #9458E8, #CA00E5)" }}
             >
               {loading ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-b-white"></div>
                   Updating...
                 </>
               ) : (
