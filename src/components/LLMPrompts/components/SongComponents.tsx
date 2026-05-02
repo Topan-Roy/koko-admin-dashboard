@@ -9,8 +9,10 @@ function SongComponents({ song }: { song: any }) {
         <div className='p-[17px] border-[1px] border-[#E5E7EB] rounded-[8px] mt-[24px]'>
             <div className='flex items-center justify-between'>
                 <div className='flex items-center justify-center gap-2'>
-                    <p className='px-[8px] py-[4px] rounded-[9999px] bg-[#DBEAFE] text-[#1E40AF] font-[500] text-[10.2px] leading-[16px]'>Song</p>
-                    <p className='text-[#6B7280] text-[11.9px] leading-[20px] font-[400]'>User: {song.user}</p>
+                    <p className={`px-[8px] py-[4px] rounded-[9999px] font-[500] text-[10.2px] leading-[16px] ${song.type === 'song' ? 'bg-[#DBEAFE] text-[#1E40AF]' : 'bg-[#F3E8FF] text-[#6B21A8]'}`}>
+                        {song.type === 'song' ? 'Song' : 'Story'}
+                    </p>
+                    <p className='text-[#111827] text-[13.6px] leading-[20px] font-[600] inter-font'>{song.user}</p>
                 </div>
                 <div className='flex items-center justify-center gap-4'>
                     <div onClick={() => setShowUpdate(true)}><EditIcon /></div>
