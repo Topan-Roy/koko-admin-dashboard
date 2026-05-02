@@ -14,8 +14,10 @@ export const description = "An area chart with axes"
 
 export default function Dashboard() {
     const [analyticsData, setAnalyticsData] = useState<any>(null);
+    const [apiCostAnalytics, setApiCostAnalytics] = useState<any>(null);
     const [recentUsers, setRecentUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingApiCost, setLoadingApiCost] = useState(true);
     const [loadingUsers, setLoadingUsers] = useState(true);
     const [filter, setFilter] = useState("7days");
 
@@ -53,9 +55,26 @@ export default function Dashboard() {
         }
     };
 
+    const fetchApiCostAnalytics = async () => {
+        setLoadingApiCost(true);
+        try {
+            const response = await api.get('/api/admin/api-cost/analytics', {
+                params: {
+                    granularity: 'month'
+                }
+            });
+            setApiCostAnalytics(response.data.data);
+        } catch (error) {
+            console.error("Failed to fetch api cost analytics:", error);
+        } finally {
+            setLoadingApiCost(false);
+        }
+    };
+
     useEffect(() => {
         fetchDashboardData();
         fetchRecentUsers();
+        fetchApiCostAnalytics();
     }, [filter]);
 
     const overview = analyticsData?.overview || {};
@@ -65,25 +84,29 @@ export default function Dashboard() {
             ...cardData[0],
             value: overview.users?.total || 0,
             change: `${overview.users?.growth >= 0 ? '+' : ''}${overview.users?.growth || 0}%`,
-            isPositive: (overview.users?.growth || 0) >= 0
+            isPositive: (overview.users?.growth || 0) >= 0,
+            growth: overview.users?.growth || 0
         },
         {
             ...cardData[1],
             value: overview.revenue?.total || 0,
             change: `${overview.revenue?.growth >= 0 ? '+' : ''}${overview.revenue?.growth || 0}%`,
-            isPositive: (overview.revenue?.growth || 0) >= 0
+            isPositive: (overview.revenue?.growth || 0) >= 0,
+            growth: overview.revenue?.growth || 0
         },
         {
             ...cardData[2],
             value: overview.coin_sold?.total || 0,
             change: `${overview.coin_sold?.growth >= 0 ? '+' : ''}${overview.coin_sold?.growth || 0}%`,
-            isPositive: (overview.coin_sold?.growth || 0) >= 0
+            isPositive: (overview.coin_sold?.growth || 0) >= 0,
+            growth: overview.coin_sold?.growth || 0
         },
         {
             ...cardData[3],
             value: overview.content_created?.total || 0,
             change: `${overview.content_created?.growth >= 0 ? '+' : ''}${overview.content_created?.growth || 0}%`,
-            isPositive: (overview.content_created?.growth || 0) >= 0
+            isPositive: (overview.content_created?.growth || 0) >= 0,
+            growth: overview.content_created?.growth || 0
         }
     ];
 
@@ -122,7 +145,7 @@ export default function Dashboard() {
                                         <div className={`flex items-center gap-2 ${card.isPositive ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
                                             <svg 
                                                 width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                                className={!card.isPositive ? 'rotate-180' : ''}
+                                                className={card.growth >= 0 ? '' : 'rotate-180'}
                                             >
                                                 <path d="M11.6201 4.66699H15.6201V8.66699" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                                 <path d="M15.6195 4.66699L9.9528 10.3337L6.61947 7.00033L2.28613 11.3337" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -159,7 +182,10 @@ export default function Dashboard() {
                                     <option value="">Last 6 months</option>
                                 </select>
                             </div>
-                            <AreaChartComponent />
+                            <AreaChartComponent 
+                                data={apiCostAnalytics?.charts?.api_cost_comparison || []} 
+                                loading={loadingApiCost}
+                            />
                         </div>
                     </div>
                     <div className="mt-[24px] px-[24px]">
