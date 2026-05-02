@@ -60,7 +60,8 @@ export default function Dashboard() {
         try {
             const response = await api.get('/api/admin/api-cost/analytics', {
                 params: {
-                    granularity: 'month'
+                    filter: filter,
+                    granularity: filter === '6months' ? 'month' : 'day'
                 }
             });
             setApiCostAnalytics(response.data.data);
@@ -177,10 +178,6 @@ export default function Dashboard() {
                         <div className="bg-white rounded-md shadow-md">
                             <div className="flex items-center justify-between p-6">
                                 <h1 className="inter-font font-[600] text-[15.3px] leading-[28px]">Revenue vs. API Costs</h1>
-                                <select name="" id="" className="rounded-md border-[1px] border-slate-200 p-2">
-                                    <option value="">Last 1 month</option>
-                                    <option value="">Last 6 months</option>
-                                </select>
                             </div>
                             <AreaChartComponent 
                                 data={apiCostAnalytics?.charts?.api_cost_comparison || []} 
