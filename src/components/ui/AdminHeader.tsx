@@ -1,5 +1,4 @@
 import React from 'react';
-import BellIcon from '../svgs/BellIcon';
 import SuperUserIcon from '../svgs/SuperUserIcon';
 import { useAppDispatch } from '../../../redux/hook';
 import { showSidebar } from '../../../redux/slices/toggleSidebar';
@@ -40,12 +39,12 @@ export default function AdminHeader() {
       </div>
       <h1 className='font-[700] text-[16px] text-center leading-[24px] inter-font gradient-text'>Welcome to Koko Admin Dashboard!</h1>
       <div className='flex items-center justify-center gap-2 admin-panel'>
-        <BellIcon />
+        {/* <BellIcon /> */}
         <Link to="/dashboard/admin-account" className='flex items-center gap-2 hover:opacity-80 transition-opacity'>
           {authContext?.user?.avatar ? (
-            <img 
-              src={authContext.user.avatar} 
-              alt="Admin" 
+            <img
+              src={authContext.user.avatar}
+              alt="Admin"
               className="w-[32px] h-[32px] rounded-full object-cover border border-gray-200"
             />
           ) : (

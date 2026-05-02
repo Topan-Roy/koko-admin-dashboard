@@ -163,7 +163,7 @@ export default function StoryComponent({ userId }: StoryComponentProps) {
                             {results.map((item: any, index: number) => (
                                 <SongComponents key={index} song={{
                                     ...item,
-                                    user: item.storyName || item.songName || 'Unnamed',
+                                    user: item.name || item.storyName || item.songName || 'Unnamed',
                                     type: item.type || (item.storyName ? 'story' : 'song')
                                 }} />
                             ))}

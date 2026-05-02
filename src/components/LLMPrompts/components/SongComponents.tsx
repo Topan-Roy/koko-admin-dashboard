@@ -68,7 +68,7 @@ function SongComponents({ song }: { song: any }) {
                     </div>
                     <div className='mt-6 pb-4 border-b-[1px] border-[#E5E7EB]'>
                         <p className='font-[500] text-[11.9px] leading-[20px] inter-font text-[#6B7280]'>Voice Output</p>
-                        <AudioSection />
+                        <AudioSection audioUrl={(song.voiceOutput || song.audioUrl || song.voiceUrl || song.outputAudioUrl || song.musicUrl)?.replace(/%22$/, '').replace(/"$/, '')} />
                     </div>
                 </> : <>
                     <div className=''>

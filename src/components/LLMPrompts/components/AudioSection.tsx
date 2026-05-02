@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Play, Pause } from "lucide-react";
 
-export default function AudioBarsPlayer() {
+export default function AudioBarsPlayer({ audioUrl }: { audioUrl?: string }) {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
@@ -82,7 +82,7 @@ export default function AudioBarsPlayer() {
       {/* Hidden audio element */}
       <audio
         ref={audioRef}
-        src="/audio/sample.mp3" // <-- replace with your audio file
+        src={audioUrl || "/audio/sample.mp3"} // Use the provided audioUrl
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={() => setIsPlaying(false)}

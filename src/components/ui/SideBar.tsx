@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "@/Context/AuthProvider";
 
 export default function SideBar() {
-  const { logOut } = useContext(AuthContext)!;
+  const { logOut, user } = useContext(AuthContext)!;
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -280,70 +280,74 @@ export default function SideBar() {
           </li>
         </ul>
 
-        <div className="flex items-center justify-start gap-3 absolute bottom-0 p-[16px] border-[1px] border-[#E5E7EB] left-0 w-full">
-          <div>
-            <svg
-              width="40"
-              height="40"
-              viewBox="0 0 40 40"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M0 20C0 8.95431 8.95431 0 20 0C31.0457 0 40 8.95431 40 20C40 31.0457 31.0457 40 20 40C8.95431 40 0 31.0457 0 20Z"
-                fill="url(#paint0_linear_362_91)"
-              />
-              <path
-                d="M22.6663 26V24.6667C22.6663 23.9594 22.3854 23.2811 21.8853 22.781C21.3852 22.281 20.7069 22 19.9997 22H15.9997C15.2924 22 14.6142 22.281 14.1141 22.781C13.614 23.2811 13.333 23.9594 13.333 24.6667V26"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M22.667 14.085C23.2388 14.2332 23.7453 14.5671 24.1068 15.0343C24.4683 15.5015 24.6645 16.0756 24.6645 16.6663C24.6645 17.257 24.4683 17.8311 24.1068 18.2983C23.7453 18.7655 23.2388 19.0994 22.667 19.2476"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M26.667 26.0002V24.6669C26.6666 24.0761 26.4699 23.5021 26.1079 23.0351C25.7459 22.5682 25.2391 22.2346 24.667 22.0869"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M17.9997 19.3333C19.4724 19.3333 20.6663 18.1394 20.6663 16.6667C20.6663 15.1939 19.4724 14 17.9997 14C16.5269 14 15.333 15.1939 15.333 16.6667C15.333 18.1394 16.5269 19.3333 17.9997 19.3333Z"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <defs>
-                <linearGradient
-                  id="paint0_linear_362_91"
-                  x1="0"
-                  y1="20"
-                  x2="40"
-                  y2="20"
-                  gradientUnits="userSpaceOnUse"
-                >
-                  <stop stopColor="#9458E8" />
-                  <stop offset="0.5" stopColor="#A43EE7" />
-                  <stop offset="1" stopColor="#CA00E5" />
-                </linearGradient>
-              </defs>
-            </svg>
+        <div className="flex items-center justify-start gap-3 absolute bottom-0 p-[16px] border-t-[1px] border-[#E5E7EB] left-0 w-full bg-white">
+          <div className="w-[40px] h-[40px] rounded-full overflow-hidden flex items-center justify-center">
+            {user?.avatar ? (
+              <img src={user.avatar} alt="User" className="w-full h-full object-cover" />
+            ) : (
+              <svg
+                width="40"
+                height="40"
+                viewBox="0 0 40 40"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M0 20C0 8.95431 8.95431 0 20 0C31.0457 0 40 8.95431 40 20C40 31.0457 31.0457 40 20 40C8.95431 40 0 31.0457 0 20Z"
+                  fill="url(#paint0_linear_362_91)"
+                />
+                <path
+                  d="M22.6663 26V24.6667C22.6663 23.9594 22.3854 23.2811 21.8853 22.781C21.3852 22.281 20.7069 22 19.9997 22H15.9997C15.2924 22 14.6142 22.281 14.1141 22.781C13.614 23.2811 13.333 23.9594 13.333 24.6667V26"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M22.667 14.085C23.2388 14.2332 23.7453 14.5671 24.1068 15.0343C24.4683 15.5015 24.6645 16.0756 24.6645 16.6663C24.6645 17.257 24.4683 17.8311 24.1068 18.2983C23.7453 18.7655 23.2388 19.0994 22.667 19.2476"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M26.667 26.0002V24.6669C26.6666 24.0761 26.4699 23.5021 26.1079 23.0351C25.7459 22.5682 25.2391 22.2346 24.667 22.0869"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M17.9997 19.3333C19.4724 19.3333 20.6663 18.1394 20.6663 16.6667C20.6663 15.1939 19.4724 14 17.9997 14C16.5269 14 15.333 15.1939 15.333 16.6667C15.333 18.1394 16.5269 19.3333 17.9997 19.3333Z"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <defs>
+                  <linearGradient
+                    id="paint0_linear_362_91"
+                    x1="0"
+                    y1="20"
+                    x2="40"
+                    y2="20"
+                    gradientUnits="userSpaceOnUse"
+                  >
+                    <stop stopColor="#9458E8" />
+                    <stop offset="0.5" stopColor="#A43EE7" />
+                    <stop offset="1" stopColor="#CA00E5" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            )}
           </div>
-          <div className="flex items-center justify-center flex-col gap-[-5px]">
-            <p className="font-[500] text-[11.9px] leading-[20px] inter-font">
-              Admin
+          <div className="flex items-start justify-center flex-col">
+            <p className="font-[600] text-[13px] leading-[18px] inter-font text-[#111827]">
+              {user?.name || "Admin"}
             </p>
             <button
               onClick={handleLogout}
-              className="font-[400] text-[#6B7280] text-[10.2px] leading-[16px] hover:text-red-500"
+              className="font-[400] text-[#EF4444] text-[11px] leading-[16px] hover:underline transition-all"
             >
               Logout
             </button>
