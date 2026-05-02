@@ -61,7 +61,7 @@ export default function Dashboard() {
             const response = await api.get('/api/admin/api-cost/analytics', {
                 params: {
                     filter: filter,
-                    granularity: filter === '6months' ? 'month' : 'day'
+                    granularity: (filter === '7days' || filter === 'month') ? 'day' : 'month'
                 }
             });
             setApiCostAnalytics(response.data.data);
@@ -79,7 +79,7 @@ export default function Dashboard() {
     }, [filter]);
 
     const overview = analyticsData?.overview || {};
-    
+
     const mappedCards = [
         {
             ...cardData[0],
@@ -119,14 +119,14 @@ export default function Dashboard() {
                     <AdminHeader />
                     <div className="flex items-center justify-between px-[24px] my-[24px]">
                         <h2 className="font-[700] text-[20.4px] leading-[32px] inter-font">Dashboard Overview</h2>
-                        <select 
-                            value={filter} 
+                        <select
+                            value={filter}
                             onChange={(e) => setFilter(e.target.value)}
                             className="rounded-md border-[1px] border-slate-200 p-2 outline-none cursor-pointer"
                         >
                             <option value="7days">Last 7 days</option>
-                            <option value="1month">Last 1 month</option>
-                            <option value="6months">Last 6 months</option>
+                            <option value="month">Last month</option>
+                            <option value="year">Last year</option>
                         </select>
                     </div>
                     <div className="flex items-center justify-center gap-4 px-[24px] flex-wrap lg:flex-nowrap">
@@ -144,7 +144,7 @@ export default function Dashboard() {
                                             {card.name === "Revenue" ? `$${card.value.toLocaleString()}` : card.value.toLocaleString()}
                                         </p>
                                         <div className={`flex items-center gap-2 ${card.isPositive ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
-                                            <svg 
+                                            <svg
                                                 width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg"
                                                 className={card.growth >= 0 ? '' : 'rotate-180'}
                                             >
@@ -179,8 +179,8 @@ export default function Dashboard() {
                             <div className="flex items-center justify-between p-6">
                                 <h1 className="inter-font font-[600] text-[15.3px] leading-[28px]">Revenue vs. API Costs</h1>
                             </div>
-                            <AreaChartComponent 
-                                data={apiCostAnalytics?.charts?.api_cost_comparison || []} 
+                            <AreaChartComponent
+                                data={apiCostAnalytics?.charts?.api_cost_comparison || []}
                                 loading={loadingApiCost}
                             />
                         </div>
