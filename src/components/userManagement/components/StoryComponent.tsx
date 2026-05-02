@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import SongComponents from '@/components/LLMPrompts/components/SongComponents'
 import Search from '@/components/svgs/Search'
-import api from '@/Context/api'
+import api from '../../../Context/api'
 import { debounce } from 'lodash'
 import Pagination from '@/components/ui/Pagination'
 import StoryIcon from '@/components/svgs/StoryIcon'
@@ -21,15 +21,21 @@ export default function StoryComponent({ userId }: StoryComponentProps) {
     const [data, setData] = useState<any>(null);
 
     const fetchActivity = async (currentType: string, currentSearch: string, currentPage: number) => {
+        console.log("Fetching activity for user:", userId);
+        if (!userId) {
+            console.warn("No userId provided to StoryComponent");
+            return;
+        }
         setLoading(true);
         try {
-            const response = await api.get('/api/users/activity', {
+            const url = `/api/admin/users/${userId}/activity`;
+            console.log("Calling API:", url);
+            const response = await api.get(url, {
                 params: {
                     type: currentType,
                     search: currentSearch,
                     page: currentPage,
                     limit: limit,
-                    userId: userId
                 }
             });
             setData(response.data.data);

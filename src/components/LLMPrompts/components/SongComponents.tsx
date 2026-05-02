@@ -5,6 +5,29 @@ import AudioSection from "../components/AudioSection"
 
 function SongComponents({ song }: { song: any }) {
     const [showUpdate, setShowUpdate] = React.useState<boolean>(false)
+    const [showFullPrompt, setShowFullPrompt] = React.useState<boolean>(false)
+    const [showFullOutput, setShowFullOutput] = React.useState<boolean>(false)
+
+    const truncateText = (text: string, isFull: boolean, toggle: () => void) => {
+        if (!text) return null;
+        
+        return (
+            <div>
+                <p className={`text-[#374151] font-[400] text-[11.9px] leading-[20px] inter-font ${!isFull ? 'line-clamp-2' : ''}`}>
+                    {text}
+                </p>
+                {text.length > 100 && (
+                    <button 
+                        onClick={toggle} 
+                        className='text-[#9458E8] font-[600] hover:underline focus:outline-none text-[11px] mt-1'
+                    >
+                        {isFull ? 'show less' : 'more'}
+                    </button>
+                )}
+            </div>
+        );
+    }
+
     return (
         <div className='p-[17px] border-[1px] border-[#E5E7EB] rounded-[8px] mt-[24px]'>
             <div className='flex items-center justify-between'>
@@ -34,13 +57,13 @@ function SongComponents({ song }: { song: any }) {
                     <div className='mt-6'>
                         <p className='font-[500] text-[11.9px] leading-[20px] inter-font text-[#6B7280]'>Prompt</p>
                         <div className='p-3 rounded-[6px] bg-slate-100'>
-                            <p className='text-[#374151] font-[400] text-[11.9px] leading-[20px] inter-font'>{song.prompt}</p>
+                            {truncateText(song.prompt, showFullPrompt, () => setShowFullPrompt(!showFullPrompt))}
                         </div>
                     </div>
                     <div className='mt-6'>
                         <p className='font-[500] text-[11.9px] leading-[20px] inter-font text-[#6B7280]'>Text Output</p>
                         <div className='p-3 rounded-[6px] bg-slate-100'>
-                            <p className='text-[#374151] font-[400] text-[11.9px] leading-[20px] inter-font'>{song.output}</p>
+                            {truncateText(song.output, showFullOutput, () => setShowFullOutput(!showFullOutput))}
                         </div>
                     </div>
                     <div className='mt-6 pb-4 border-b-[1px] border-[#E5E7EB]'>
