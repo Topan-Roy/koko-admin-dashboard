@@ -30,7 +30,7 @@ const chartConfig = {
 
 export default function LineChartComponent() {
     return (
-        <div className="rounded-[8px] p-[25px] border-[1px] border-[#E5E7EB] bg-white w-full shadow-md">
+        <div className="rounded-2xl p-[25px] border-[1px] border-[#E5E7EB] bg-white w-full shadow-sm transition-all hover:shadow-md">
             <h1 className="font-semibold text-[15.3px] leading-[28px] text-[#000000]">Total Package Sales Month-Wise</h1>
             <ChartContainer config={chartConfig} className="min-h-[200px] w-full mt-3">
                 <BarChart accessibilityLayer data={chartData}>

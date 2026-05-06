@@ -141,7 +141,7 @@ export default function Dashboard() {
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="rounded-md border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
+                                    className="rounded-xl border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
                                 />
                             </div>
                             <div className="flex items-center gap-2">
@@ -150,17 +150,17 @@ export default function Dashboard() {
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="rounded-md border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
+                                    className="rounded-xl border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
                                 />
                             </div>
                         </div>
                     </div>
                     <div className="flex items-center justify-center gap-4 px-[24px] flex-wrap lg:flex-nowrap">
                         {loading ? (
-                            <div className="col-span-full text-center py-10 w-full bg-white rounded-md shadow-md">Loading dashboard data...</div>
+                            <div className="col-span-full text-center py-10 w-full bg-white rounded-2xl shadow-sm border border-gray-100">Loading dashboard data...</div>
                         ) : (
                             mappedCards.map((card, index) => (
-                                <div key={index} className="p-4 bg-white w-full rounded-md shadow-md">
+                                <div key={index} className="p-5 bg-white w-full rounded-2xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
                                     <div className="flex items-center justify-between">
                                         <p className="font-[500] text-[11.9px] leading-[20px] inter-font text-[#6B7280]">{card.name}</p>
                                         <div>{card.icon}</div>
@@ -185,11 +185,11 @@ export default function Dashboard() {
                         )}
                     </div>
                     <div className="mt-[24px] flex items-stretch justify-center px-[24px] gap-6 flex-wrap lg:flex-nowrap">
-                        <div className="w-full bg-white rounded-md shadow-md p-6">
+                        <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition-all hover:shadow-md">
                             <h1 className="inter-font font-[600] text-[15.3px] leading-[28px]">Revenue Overview</h1>
                             <BarComponent data={analyticsData?.revenue_chart || []} />
                         </div>
-                        <div className="w-full bg-white rounded-md shadow-md p-6">
+                        <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition-all hover:shadow-md">
                             <h1 className="inter-font font-[600] text-[15.3px] leading-[28px]">User Activity</h1>
                             <LineChart data={analyticsData?.user_chart || []} />
                             <div className="flex items-center justify-center gap-4 mt-4">
@@ -201,7 +201,7 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <div className="mt-[24px] px-[24px]">
-                        <div className="bg-white rounded-md shadow-md">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
                             <div className="flex items-center justify-between p-6">
                                 <h1 className="inter-font font-[600] text-[15.3px] leading-[28px]">Revenue vs. API Costs</h1>
                             </div>
@@ -212,7 +212,7 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <div className="mt-[24px] px-[24px]">
-                        <div className="bg-white rounded-md shadow-md px-[24px] py-[12px] overflow-x-auto">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-[24px] py-[12px] overflow-x-auto transition-all hover:shadow-md">
                             <h1 className="font-[700] text-[17px] leading-[28px] inter-font pt-[24px] pb-[16px]">Recent Users</h1>
                             <div className="overflow-x-auto">
                                 <table className="w-full min-w-[600px]">

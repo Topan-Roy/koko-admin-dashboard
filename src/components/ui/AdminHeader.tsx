@@ -33,7 +33,7 @@ export default function AdminHeader() {
   }, []);
 
   return (
-    <div className='flex items-center justify-between px-[24px] py-[12px]  bg-white sticky top-0 z-40' style={{ boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}>
+    <div className='flex items-center justify-between px-[24px] py-[12px] bg-white sticky top-0 z-40 border-b border-gray-100 shadow-sm'>
       <div onClick={() => dispatch(showSidebar())} ref={barRef} className='mr-4'>
         <i className="fa fa-bars gradient-text font-bold cursor-pointer" style={{ fontSize: "30px" }}></i>
       </div>

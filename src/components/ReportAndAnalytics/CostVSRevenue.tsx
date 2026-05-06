@@ -94,7 +94,7 @@ export default function CostVSRevenue() {
                                 type="date"
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
-                                className="rounded-md border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
+                                className="rounded-xl border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
                             />
                         </div>
                         <div className="flex items-center gap-2">
@@ -133,7 +133,7 @@ export default function CostVSRevenue() {
                         <div className="col-span-full text-center py-10">Loading analytics...</div>
                     ) : (
                         mappedCards.map((card, index) => (
-                            <div key={index} className='rounded-[8px] border-[1px] border-[#E5E7EB] bg-white p-[25px] shadow-md w-full'>
+                            <div key={index} className='rounded-2xl border-[1px] border-[#E5E7EB] bg-white p-[25px] shadow-sm w-full transition-all hover:shadow-md'>
                                 <div className='flex items-center justify-between'>
                                     <p className='font-[500] text-[11.9px] leading-[20px] inter-font text-[#6B7280]'>{card.category}</p>
                                     <div>{card.icon}</div>

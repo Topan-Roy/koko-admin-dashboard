@@ -13,7 +13,14 @@ export default function CoinManagementAnalytics() {
   const [recentBuyers, setRecentBuyers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingTable, setLoadingTable] = useState(true);
-  const [period, setPeriod] = useState("monthly");
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    return new Date().toISOString().split('T')[0];
+  });
   const [page, setPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
 
@@ -21,7 +28,7 @@ export default function CoinManagementAnalytics() {
     setLoading(true);
     try {
       const response = await api.get("/api/admin/sales/overview", {
-        params: { period },
+        params: { startDate, endDate },
       });
       setOverview(response.data.data);
     } catch (error) {
@@ -38,7 +45,8 @@ export default function CoinManagementAnalytics() {
         params: {
           page,
           limit: 10,
-          period,
+          startDate,
+          endDate,
         },
       });
       setRecentBuyers(response.data.data.results);
@@ -52,11 +60,11 @@ export default function CoinManagementAnalytics() {
 
   useEffect(() => {
     fetchOverview();
-  }, [period]);
+  }, [startDate, endDate]);
 
   useEffect(() => {
     fetchRecentBuyers();
-  }, [period, page]);
+  }, [startDate, endDate, page]);
 
   const cards = overview?.cards || {};
   const platformData = overview?.platform_sell_percentage || {};
@@ -66,27 +74,27 @@ export default function CoinManagementAnalytics() {
       ...cardData[0],
       value: `$${(cards.total_sales?.total || 0).toLocaleString()}`,
       change: `${cards.total_sales?.growth_percent >= 0 ? "+" : ""}${cards.total_sales?.growth_percent || 0}%`,
-      description: `from last ${period === "weekly" ? "week" : period === "monthly" ? "month" : "year"}`,
+      description: "compared to previous period",
       isPositive: (cards.total_sales?.growth_percent || 0) >= 0,
     },
     {
       ...cardData[1],
       value: cards.most_popular_package?.package_name || "N/A",
-      secondaryValue: `${cards.most_popular_package?.sold_count || 0} sales this ${period === "weekly" ? "week" : period === "monthly" ? "month" : "year"}`,
+      secondaryValue: `${cards.most_popular_package?.sold_count || 0} sales in this period`,
       change: null,
     },
     {
       ...cardData[2],
       value: `$${(cards.avg_purchase?.total || 0).toLocaleString()}`,
       change: `${cards.avg_purchase?.growth_percent >= 0 ? "+" : ""}${cards.avg_purchase?.growth_percent || 0}%`,
-      description: `from last ${period === "weekly" ? "week" : period === "monthly" ? "month" : "year"}`,
+      description: "compared to previous period",
       isPositive: (cards.avg_purchase?.growth_percent || 0) >= 0,
     },
     {
       ...cardData[3],
       value: (cards.total_coins_sold?.total || 0).toLocaleString(),
       change: `${cards.total_coins_sold?.growth_percent >= 0 ? "+" : ""}${cards.total_coins_sold?.growth_percent || 0}%`,
-      description: `from last ${period === "weekly" ? "week" : period === "monthly" ? "month" : "year"}`,
+      description: "compared to previous period",
       isPositive: (cards.total_coins_sold?.growth_percent || 0) >= 0,
     },
   ];
@@ -100,18 +108,32 @@ export default function CoinManagementAnalytics() {
           <h1 className="font-[700] text-[20.4px] leading-[32px] inter-font">
             Sales Analytics
           </h1>
-          <select
-            value={period}
-            onChange={(e) => {
-              setPeriod(e.target.value);
-              setPage(1);
-            }}
-            className="py-[9px] px-[13px] rounded-[6px] border-[1px] border-[#D1D5DB] outline-none font-[400] inter-font text-[#000000] text-[14px] leading-[1.2] cursor-pointer"
-          >
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="yearly">Yearly</option>
-          </select>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-600 inter-font">From:</span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setPage(1);
+                }}
+                className="rounded-xl border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-600 inter-font">To:</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setPage(1);
+                }}
+                className="rounded-xl border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
+              />
+            </div>
+          </div>
         </div>
         <div className="mt-6    px-6">
           <div className="flex items-center justify-start gap-6 border-b-[1px] border-[#E5E7EB] ">
@@ -139,12 +161,12 @@ export default function CoinManagementAnalytics() {
         </div>
         <div className="mt-6 px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {loading ? (
-            <div className="col-span-full text-center py-10 bg-white rounded-md shadow-md">Loading analytics...</div>
+            <div className="col-span-full text-center py-10 bg-white rounded-2xl shadow-sm border border-gray-100">Loading analytics...</div>
           ) : (
             mappedCards.map((card, index) => (
               <div
                 key={index}
-                className="rounded-[8px] border-[1px] border-[#E5E7EB] bg-white p-[25px] shadow-md w-full"
+                className="rounded-2xl border-[1px] border-[#E5E7EB] bg-white p-[25px] shadow-sm w-full transition-all hover:shadow-md"
               >
                 <div className="flex items-center justify-between">
                   <p className="font-[500] text-[11.9px] inter-font text-[#6B7280]">
@@ -196,7 +218,7 @@ export default function CoinManagementAnalytics() {
           )}
         </div>
         <div className="mt-6    px-6">
-          <div className="bg-white w-full rounded-[8px] shadow-md px-[24px]">
+          <div className="bg-white w-full rounded-2xl shadow-sm border border-gray-100 px-[24px] transition-all hover:shadow-md">
             {" "}
             <br />
             <h1 className="text-[17px] leading-[28px] inter-font text-[#1F2937] my-6 font-[700] mt-6">

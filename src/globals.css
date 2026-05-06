@@ -6,13 +6,14 @@
 
 .custom-checkbox {
     appearance: none;
-    width: 15px;
-    height: 15px;
-    border: 1px solid #9458E8;
-    border-radius: 4px;
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid #9458E8;
+    border-radius: 6px;
     cursor: pointer;
     position: relative;
     padding: 5px;
+    transition: all 0.2s ease;
 }
 
 .custom-checkbox:checked::before {
@@ -43,10 +44,11 @@
   position: absolute;
   content: '';
   left: 0;
-  top: 0;
-  width: 5px;
-  height: 100%;
-  background-color: #9458E8;
+  top: 15%;
+  width: 4px;
+  height: 70%;
+  background: linear-gradient(to bottom, #9458E8, #CA00E5);
+  border-radius: 0 4px 4px 0;
 }
 
 

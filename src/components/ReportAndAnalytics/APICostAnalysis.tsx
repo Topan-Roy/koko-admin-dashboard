@@ -111,7 +111,7 @@ export default function APICostAnalysis() {
                                 type="date"
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
-                                className="rounded-md border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
+                                className="rounded-xl border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
                             />
                         </div>
                         <div className="flex items-center gap-2">
@@ -150,7 +150,7 @@ export default function APICostAnalysis() {
                         <div className="col-span-full text-center py-10">Loading API cost analytics...</div>
                     ) : (
                         mappedCards.map((card, index) => (
-                            <div key={index} className='rounded-[8px] border-[1px] border-[#E5E7EB] bg-white p-[25px] shadow-md w-full'>
+                            <div key={index} className='rounded-2xl border-[1px] border-[#E5E7EB] bg-white p-[25px] shadow-sm w-full transition-all hover:shadow-md'>
                                 <div className='flex items-center justify-between'>
                                     <p className='font-[500] text-[11.9px] leading-[20px] inter-font text-[#6B7280]'>{card.category}</p>
                                     <div>{card.icon}</div>
@@ -180,7 +180,7 @@ export default function APICostAnalysis() {
 
                 <div className='mt-6 px-6 flex flex-col md:flex-row items-stretch justify-center gap-6'>
                     {/* Story Creation Cost Breakdown */}
-                    <div className='w-full bg-white rounded-[8px] p-[25px] border-[1px] border-[#E5E7EB] my-4 shadow-md'>
+                    <div className='w-full bg-white rounded-2xl p-[25px] border-[1px] border-[#E5E7EB] my-4 shadow-sm transition-all hover:shadow-md'>
                         <h1 className='font-[600] text-[15.3px] leading-[28px] inter-font'>Story Creation Cost Breakdown</h1>
                         <div className='flex items-center justify-between mt-2'>
                             <h2 className='font-[500] text-[11.9px] leading-[20px] inter-font'>Average Cost per Story:</h2>
@@ -201,7 +201,7 @@ export default function APICostAnalysis() {
                     </div>
 
                     {/* Song Generation Cost Breakdown */}
-                    <div className='w-full bg-white rounded-[8px] p-[25px] border-[1px] border-[#E5E7EB] my-4 shadow-md'>
+                    <div className='w-full bg-white rounded-2xl p-[25px] border-[1px] border-[#E5E7EB] my-4 shadow-sm transition-all hover:shadow-md'>
                         <h1 className='font-[600] text-[15.3px] leading-[28px] inter-font'>Song Generation Cost Breakdown</h1>
                         <div className='flex items-center justify-between mt-2'>
                             <h2 className='font-[500] text-[11.9px] leading-[20px] inter-font'>Average Cost per Song:</h2>

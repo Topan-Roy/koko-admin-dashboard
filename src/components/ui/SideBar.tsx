@@ -34,8 +34,7 @@ export default function SideBar() {
   return (
     <>
       <nav
-        className="w-screen sm:z-0 z-[1000] sm:w-[350px] bg-white left-0 h-screen sm:sticky fixed top-0"
-        style={{ boxShadow: "1px 0 5px #888" }}
+        className="w-screen sm:z-0 z-[1000] sm:w-[350px] bg-white left-0 h-screen sm:sticky fixed top-0 border-r border-gray-100 shadow-sm"
       >
         <Link to="/dashboard">
           <div className="w-full h-[137px] flex items-center justify-center relative cursor-pointer">

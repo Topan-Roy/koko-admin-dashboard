@@ -34,7 +34,7 @@ export default function PieChartComponent({ data }: { data?: any }) {
     ] : [];
 
     return (
-        <div className="rounded-[8px] p-[25px] border-[1px] border-[#E5E7EB] bg-white w-full shadow-md min-h-[400px] flex flex-col">
+        <div className="rounded-2xl p-[25px] border border-gray-100 bg-white w-full shadow-sm min-h-[400px] flex flex-col">
             <h1 className="font-semibold text-[15.3px] leading-[28px] text-[#000000] mb-4">Platform Sell Percentage</h1>
             <Card className="flex flex-col border-none outline-none shadow-none flex-1">
                 <CardContent className="flex-1 pb-0 flex justify-center items-center">
