@@ -19,14 +19,22 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [loadingApiCost, setLoadingApiCost] = useState(true);
     const [loadingUsers, setLoadingUsers] = useState(true);
-    const [filter, setFilter] = useState("7days");
+    const [startDate, setStartDate] = useState(() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 7);
+        return d.toISOString().split('T')[0];
+    });
+    const [endDate, setEndDate] = useState(() => {
+        return new Date().toISOString().split('T')[0];
+    });
 
     const fetchDashboardData = async () => {
         setLoading(true);
         try {
             const response = await api.get('/api/admin/dashboard', {
                 params: {
-                    filter: filter
+                    startDate,
+                    endDate
                 }
             });
             setAnalyticsData(response.data.data);
@@ -58,10 +66,17 @@ export default function Dashboard() {
     const fetchApiCostAnalytics = async () => {
         setLoadingApiCost(true);
         try {
+            // Determine granularity based on the range
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+            const granularity = diffDays > 60 ? 'month' : 'day';
+
             const response = await api.get('/api/admin/api-cost/analytics', {
                 params: {
-                    filter: filter,
-                    granularity: (filter === '7days' || filter === 'month') ? 'day' : 'month'
+                    startDate,
+                    endDate,
+                    granularity
                 }
             });
             setApiCostAnalytics(response.data.data);
@@ -76,7 +91,7 @@ export default function Dashboard() {
         fetchDashboardData();
         fetchRecentUsers();
         fetchApiCostAnalytics();
-    }, [filter]);
+    }, [startDate, endDate]);
 
     const overview = analyticsData?.overview || {};
 
@@ -119,15 +134,26 @@ export default function Dashboard() {
                     <AdminHeader />
                     <div className="flex items-center justify-between px-[24px] my-[24px]">
                         <h2 className="font-[700] text-[20.4px] leading-[32px] inter-font">Dashboard Overview</h2>
-                        <select
-                            value={filter}
-                            onChange={(e) => setFilter(e.target.value)}
-                            className="rounded-md border-[1px] border-slate-200 p-2 outline-none cursor-pointer"
-                        >
-                            <option value="7days">Last 7 days</option>
-                            <option value="month">Last month</option>
-                            <option value="year">Last year</option>
-                        </select>
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-600 inter-font">From:</span>
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className="rounded-md border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-600 inter-font">To:</span>
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="rounded-md border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
+                                />
+                            </div>
+                        </div>
                     </div>
                     <div className="flex items-center justify-center gap-4 px-[24px] flex-wrap lg:flex-nowrap">
                         {loading ? (

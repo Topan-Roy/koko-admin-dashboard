@@ -13,14 +13,28 @@ import api from '../../Context/api'
 export default function CostVSRevenue() {
     const [analyticsData, setAnalyticsData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [months, setMonths] = useState("6");
+    const [startDate, setStartDate] = useState(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 6);
+        return d.toISOString().split('T')[0];
+    });
+    const [endDate, setEndDate] = useState(() => {
+        return new Date().toISOString().split('T')[0];
+    });
 
     const fetchAnalytics = async () => {
         setLoading(true);
         try {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+            const granularity = diffDays > 60 ? 'month' : 'day';
+
             const response = await api.get('/api/admin/cost-revenue/analytics', {
                 params: {
-                    months: months
+                    startDate,
+                    endDate,
+                    granularity
                 }
             });
             setAnalyticsData(response.data.data);
@@ -33,7 +47,7 @@ export default function CostVSRevenue() {
 
     useEffect(() => {
         fetchAnalytics();
-    }, [months]);
+    }, [startDate, endDate]);
 
     const cards = analyticsData?.cards || {};
     
@@ -73,14 +87,26 @@ export default function CostVSRevenue() {
                 <AdminHeader />
                 <div className='mt-6 px-6 flex items-center justify-between'>
                     <h1 className='font-[700] text-[20.4px] leading-[32px] inter-font'>Reports & Analytics</h1>
-                    <select 
-                        value={months} 
-                        onChange={(e) => setMonths(e.target.value)}
-                        className='px-[13px] py-[9px] border-[1px] border-[#D1D5DB] rounded-[6px] outline-none cursor-pointer hover:border-[#9458E8] transition-colors'
-                    >
-                        <option value="6">6 Months</option>
-                        <option value="12">12 Months</option>
-                    </select>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-600 inter-font">From:</span>
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="rounded-md border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
+                            />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-600 inter-font">To:</span>
+                            <input
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="rounded-md border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
+                            />
+                        </div>
+                    </div>
                 </div>
                 <div className='mt-6   px-6  '>
                     <div className='flex items-center justify-start gap-6 border-b-[1px] border-[#E5E7EB]'>
