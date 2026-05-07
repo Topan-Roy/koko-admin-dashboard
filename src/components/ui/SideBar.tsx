@@ -277,6 +277,28 @@ export default function SideBar() {
               Admin Account
             </Link>
           </li>
+
+          <li
+            className={`${
+              pathname === AdminRoutes.ApiConfig ? "list-link" : ""
+            } flex items-center justify-start gap-3 py-[12px] px-[28px] inter-font font-[500] text-[13.6px] leading-[24px]`}
+          >
+            <TransactionIcon // Reusing an icon for now or I can find another
+              color={
+                pathname === AdminRoutes.ApiConfig ? "#9458E8" : "#4B5563"
+              }
+            />
+            <Link
+              to={`/dashboard/api-config`}
+              className={`${
+                pathname === AdminRoutes.ApiConfig
+                  ? "text-[#9458E8]"
+                  : "#4B5563"
+              }`}
+            >
+              API Configuration
+            </Link>
+          </li>
         </ul>
 
         <div className="flex items-center justify-start gap-3 absolute bottom-0 p-[16px] border-t-[1px] border-[#E5E7EB] left-0 w-full bg-white">

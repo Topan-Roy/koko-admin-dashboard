@@ -1,6 +1,6 @@
-import { BookOpen, Music, Type, Image } from "lucide-react";
-
+import { BookOpen, Music, Type, Image, Volume2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+
 const StoryIcon = ({ active }: { active: boolean }) => (
   <BookOpen color={active ? "#9333EA" : "#6B7280"} size={16} />
 );
@@ -13,9 +13,15 @@ const TitleIcon = ({ active }: { active: boolean }) => (
 const ImageIcon = ({ active }: { active: boolean }) => (
   <Image color={active ? "#9333EA" : "#6B7280"} size={16} />
 );
+const AudioIcon = ({ active }: { active: boolean }) => (
+  <Volume2 color={active ? "#9333EA" : "#6B7280"} size={16} />
+);
+
 const tabs = [
   { label: "Story", path: "/dashboard/llm-prompts", icon: StoryIcon },
+  { label: "Story audio", path: "/dashboard/story-audio-prompts", icon: AudioIcon },
   { label: "Song", path: "/dashboard/audio-prompts", icon: SongIcon },
+  { label: "Song audio", path: "/dashboard/song-audio-prompts", icon: AudioIcon },
   { label: "Title generation", path: "/dashboard/title-prompts", icon: TitleIcon },
   { label: "Image prompts", path: "/dashboard/image-prompts", icon: ImageIcon },
 ];

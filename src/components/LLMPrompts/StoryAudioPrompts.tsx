@@ -14,26 +14,36 @@ interface PromptData {
   updatedAt: string;
 }
 
-export default function StoryPrompts() {
+interface AudioPromptsProps {
+  mode: "story" | "song";
+}
+
+export default function AudioGenerationPrompts({ mode }: AudioPromptsProps) {
   const [promptData, setPromptData] = useState<PromptData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState("");
 
+  const promptKey = mode === "story" ? "story_audio_prompt" : "song_audio_prompt";
+  const title = mode === "story" ? "Story Audio Prompt Management" : "Song Audio Prompt Management";
+  const subtitle = mode === "story" 
+    ? "View and manage all your Story Audio Master Prompts" 
+    : "View and manage all your Song Audio Master Prompts";
+
   useEffect(() => {
     fetchPromptData();
-  }, []);
+  }, [mode]);
 
   const fetchPromptData = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/api/prompts/story_idea");
-      const data = response.data.data.prompt;
+      const response = await api.get("/api/prompts/audio-prompts");
+      const data = response.data.data[promptKey];
       setPromptData(data);
       setEditedPrompt(data?.systemPrompt || "");
     } catch (error) {
-      console.error("Failed to fetch prompt data:", error);
-      toast.error("Failed to load prompt data");
+      console.error(`Failed to fetch ${mode} audio prompt data:`, error);
+      toast.error(`Failed to load ${mode} audio prompt data`);
     } finally {
       setLoading(false);
     }
@@ -41,7 +51,7 @@ export default function StoryPrompts() {
 
   const handleSave = async () => {
     try {
-      await api.patch("/api/prompts/story_idea", {
+      await api.patch(`/api/prompts/audio-prompts/${promptKey}`, {
         systemPrompt: editedPrompt,
       });
       toast.success("Prompt updated successfully!");
@@ -69,10 +79,10 @@ export default function StoryPrompts() {
             <div className="flex items-start justify-between mb-6">
               <div>
                 <h1 className="text-xl font-semibold text-[#111827] mb-1 mt-8">
-                  Story Prompt Management
+                  {title}
                 </h1>
                 <p className="text-sm text-gray-500">
-                  View and manage all your Story Master Prompts
+                  {subtitle}
                 </p>
               </div>
             </div>

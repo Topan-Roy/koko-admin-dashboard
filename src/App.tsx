@@ -22,6 +22,7 @@ const StoryPrompts = lazy(() => import("./components/LLMPrompts/StoryPrompts"));
 const AudioPrompts = lazy(() => import("./components/LLMPrompts/SongPrompts"));
 const TitlePrompts = lazy(() => import("./components/LLMPrompts/TitlePrompts"));
 const ImagePrompts = lazy(() => import("./components/LLMPrompts/ImagePrompts"));
+const StoryAudioPrompts = lazy(() => import("./components/LLMPrompts/StoryAudioPrompts"));
 const PromTabs = lazy(() => import("./components/LLMPrompts/PromptTabs"));
 
 const LLMBlockList = lazy(() => import("./components/LLMPrompts/LLMBlockList"));
@@ -56,6 +57,7 @@ const PasswordChangeStatus = lazy(
   () => import("./components/loginComponents/PasswordChangeStatus")
 );
 
+const ApiConfig = lazy(() => import("./components/ApiConfig/ApiConfig"));
 const LoadingFallback = () => <div>Loading...</div>;
 
 export enum AdminRoutes {
@@ -84,6 +86,9 @@ export enum AdminRoutes {
   FaqManagement = "/dashboard/faq-management",
   FreeLibrary = "/dashboard/free-library",
   AdminAccount = "/dashboard/admin-account",
+  ApiConfig = "/dashboard/api-config",
+  StoryAudioPrompts = "/dashboard/story-audio-prompts",
+  SongAudioPrompts = "/dashboard/song-audio-prompts",
 }
 
 export default function App() {
@@ -246,6 +251,30 @@ export default function App() {
           element={
             <PrivateRoute>
               <AdminAcount />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/dashboard/api-config"
+          element={
+            <PrivateRoute>
+              <ApiConfig />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/dashboard/story-audio-prompts"
+          element={
+            <PrivateRoute>
+              <StoryAudioPrompts mode="story" />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/dashboard/song-audio-prompts"
+          element={
+            <PrivateRoute>
+              <StoryAudioPrompts mode="song" />
             </PrivateRoute>
           }
         />
