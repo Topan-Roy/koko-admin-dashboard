@@ -1,4 +1,8 @@
-export default function UserDetailsTable({ userData }: { userData: any }) {
+import React from "react";
+import CreditTokensModal from "./CreditTokensModal";
+
+export default function UserDetailsTable({ userData, onRefresh }: { userData: any; onRefresh: () => void }) {
+    const [showCreditModal, setShowCreditModal] = React.useState(false);
     if (!userData) return null;
     const isUserActive = Boolean(userData.activeStatus ?? userData.is_active);
 
@@ -44,12 +48,27 @@ export default function UserDetailsTable({ userData }: { userData: any }) {
                             {(userData.favoriteStories || []).length} Stories, {(userData.favoriteSongs || []).length} Songs
                         </td>
                         <td className='text-[#000000] font-[400] text-[16px] leading-[24px] text-left '>
-                            <p className='py-[5px] px-[16px] border-[1px] border-[#D1D5DB] rounded-[6px] w-[80%]'>{userData.coins || 0}</p>
+                            <div className="flex items-center gap-2">
+                                <span className='font-semibold text-gray-900 text-[18px]'>{userData.coins || 0}</span>
+                                <button 
+                                    onClick={() => setShowCreditModal(true)}
+                                    className="px-3 py-1 text-xs font-medium text-white bg-[#9458E8] rounded-md hover:bg-[#8347d7] inter-font"
+                                >
+                                    Credit
+                                </button>
+                            </div>
                         </td>
                         <td className='text-[#000000] font-[400] text-[16px] leading-[24px] text-left '>{userData.main_user_settings?.sub_users_count || 0}</td>
                     </tr>
                 </tbody>
             </table>
+            {showCreditModal && (
+                <CreditTokensModal 
+                    userId={userData.userId || userData._id || userData.id} 
+                    onClose={() => setShowCreditModal(false)}
+                    onSuccess={onRefresh}
+                />
+            )}
         </div>
     )
 }

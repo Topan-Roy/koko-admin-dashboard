@@ -107,7 +107,7 @@ export default function UserDetails() {
   };
 
   const showTapComponent = {
-    [TapData.UserDetails]: <UserDetailsTable userData={userData} />,
+    [TapData.UserDetails]: <UserDetailsTable userData={userData} onRefresh={() => fetchUser(false)} />,
     [TapData.Activity]: <UserDetailsActivity />,
     [TapData.Profiles]: <Profile userData={userData} />,
   };
