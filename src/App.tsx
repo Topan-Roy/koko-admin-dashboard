@@ -58,6 +58,7 @@ const PasswordChangeStatus = lazy(
 );
 
 const ApiConfig = lazy(() => import("./components/ApiConfig/ApiConfig"));
+const Rankings = lazy(() => import("./components/Rankings/Rankings"));
 const LoadingFallback = () => <div>Loading...</div>;
 
 export enum AdminRoutes {
@@ -89,6 +90,7 @@ export enum AdminRoutes {
   ApiConfig = "/dashboard/api-config",
   StoryAudioPrompts = "/dashboard/story-audio-prompts",
   SongAudioPrompts = "/dashboard/song-audio-prompts",
+  Rankings = "/dashboard/rankings",
 }
 
 export default function App() {
@@ -275,6 +277,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <StoryAudioPrompts mode="song" />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/dashboard/rankings"
+          element={
+            <PrivateRoute>
+              <Rankings />
             </PrivateRoute>
           }
         />

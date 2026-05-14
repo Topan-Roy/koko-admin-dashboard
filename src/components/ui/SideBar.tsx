@@ -14,6 +14,7 @@ import { AdminRoutes } from "@/App";
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "@/Context/AuthProvider";
+import RankingsIcon from "../svgs/RankingsIcon";
 
 export default function SideBar() {
   const { logOut, user } = useContext(AuthContext)!;
@@ -132,6 +133,24 @@ export default function SideBar() {
               }`}
             >
               Free Library
+            </Link>
+          </li>
+
+          <li
+            className={`${
+              pathname === AdminRoutes.Rankings ? "list-link" : ""
+            } flex items-center justify-start gap-3 py-[12px] px-[28px] inter-font font-[500] text-[13.6px] leading-[24px]`}
+          >
+            <RankingsIcon
+              color={pathname === AdminRoutes.Rankings ? "#9458E8" : "#4B5563"}
+            />
+            <Link
+              to={AdminRoutes.Rankings}
+              className={`${
+                pathname === AdminRoutes.Rankings ? "text-[#9458E8]" : "#4B5563"
+              }`}
+            >
+              Rankings
             </Link>
           </li>
 
