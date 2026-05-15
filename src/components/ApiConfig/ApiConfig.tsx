@@ -119,7 +119,14 @@ export default function ApiConfig() {
   const ttsModel = configs.tts_config?.model || "gemini-2.5-flash-preview-tts";
   const ttsApi = configs.tts_config?.generateContentApi || "streamGenerateContent";
   const dynamicTtsEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${ttsModel}:${ttsApi}`;
-  const manualEndpoint = configs.tts_config?.endpoint;
+  const manualTtsEndpoint = configs.tts_config?.endpoint;
+
+  const storyModel = configs.story_config?.model || "gemini-2.5-flash";
+  const storyApi = configs.story_config?.generateContentApi || "generateContent";
+  const dynamicStoryEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${storyModel}:${storyApi}`;
+  const manualStoryEndpoint = configs.story_config?.endpoint;
+
+  const imageModel = configs.image_config?.model || "gemini-2.5-flash-image";
 
   return (
     <div className="flex items-start justify-center bg-[#F9F9F9] min-h-screen">
@@ -174,11 +181,40 @@ export default function ApiConfig() {
               description="Gemini Flash model for narrative text"
               icon={BookOpen}
             >
-              <InputField 
-                label="Generation Endpoint" 
-                value={configs.story_config?.endpoint} 
-                onChange={(val: string) => updateNestedValue('story_config', 'endpoint', val)}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <InputField 
+                  label="Model ID" 
+                  placeholder="gemini-2.5-flash"
+                  value={configs.story_config?.model} 
+                  onChange={(val: string) => updateNestedValue('story_config', 'model', val)}
+                />
+                <InputField 
+                  label="Generate API" 
+                  placeholder="generateContent"
+                  value={configs.story_config?.generateContentApi} 
+                  onChange={(val: string) => updateNestedValue('story_config', 'generateContentApi', val)}
+                />
+              </div>
+              
+              <div className="space-y-4">
+                <InputField 
+                  label="Full Endpoint Override" 
+                  placeholder="Leave empty to use dynamic URL"
+                  value={configs.story_config?.endpoint} 
+                  onChange={(val: string) => updateNestedValue('story_config', 'endpoint', val)}
+                  helper="Manually override the full URL if needed."
+                />
+
+                <div className="p-3 bg-gray-50 border border-dashed border-gray-200 rounded-xl">
+                  <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    {manualStoryEndpoint ? <Link size={10} className="text-blue-500" /> : <Globe size={10} />} 
+                    {manualStoryEndpoint ? "Active Manual Override" : "Active Dynamic Endpoint"}
+                  </label>
+                  <div className={`text-[10px] font-mono break-all leading-relaxed ${manualStoryEndpoint ? 'text-blue-600' : 'text-purple-600'}`}>
+                    {manualStoryEndpoint || dynamicStoryEndpoint}
+                  </div>
+                </div>
+              </div>
             </ConfigCard>
 
             {/* Image Generation Card */}
@@ -187,11 +223,14 @@ export default function ApiConfig() {
               description="Gemini Flash Image model for scene art"
               icon={ImageIcon}
             >
-              <InputField 
-                label="Image Endpoint" 
-                value={configs.image_config?.endpoint} 
-                onChange={(val: string) => updateNestedValue('image_config', 'endpoint', val)}
-              />
+              <div className="grid grid-cols-1 gap-4">
+                <InputField 
+                  label="Model ID" 
+                  placeholder="gemini-2.5-flash-image"
+                  value={configs.image_config?.model} 
+                  onChange={(val: string) => updateNestedValue('image_config', 'model', val)}
+                />
+              </div>
             </ConfigCard>
 
             {/* Story Audio (TTS) Card */}
@@ -232,11 +271,11 @@ export default function ApiConfig() {
 
                 <div className="p-3 bg-gray-50 border border-dashed border-gray-200 rounded-xl">
                   <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                    {manualEndpoint ? <Link size={10} className="text-blue-500" /> : <Globe size={10} />} 
-                    {manualEndpoint ? "Active Manual Override" : "Active Dynamic Endpoint"}
+                    {manualTtsEndpoint ? <Link size={10} className="text-blue-500" /> : <Globe size={10} />} 
+                    {manualTtsEndpoint ? "Active Manual Override" : "Active Dynamic Endpoint"}
                   </label>
-                  <div className={`text-[10px] font-mono break-all leading-relaxed ${manualEndpoint ? 'text-blue-600' : 'text-purple-600'}`}>
-                    {manualEndpoint || dynamicTtsEndpoint}
+                  <div className={`text-[10px] font-mono break-all leading-relaxed ${manualTtsEndpoint ? 'text-blue-600' : 'text-purple-600'}`}>
+                    {manualTtsEndpoint || dynamicTtsEndpoint}
                   </div>
                 </div>
               </div>
