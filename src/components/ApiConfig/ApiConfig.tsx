@@ -126,8 +126,6 @@ export default function ApiConfig() {
   const dynamicStoryEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${storyModel}:${storyApi}`;
   const manualStoryEndpoint = configs.story_config?.endpoint;
 
-  const imageModel = configs.image_config?.model || "gemini-2.5-flash-image";
-
   return (
     <div className="flex items-start justify-center bg-[#F9F9F9] min-h-screen">
       <SideBar />
