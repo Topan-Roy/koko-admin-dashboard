@@ -118,7 +118,8 @@ export default function ApiConfig() {
 
   const sanitizePayloadForApi = (rawConfigs: any) => {
     const safe = rawConfigs || {};
-    const hasText = (v: any) => typeof v === "string" && v.trim().length > 0;
+    const strOrFallback = (v: any, fallback: string) =>
+      typeof v === "string" && v.trim().length > 0 ? v : fallback;
     const out: Record<string, any> = {};
 
     if (safe.story_text_config) out.story_text_config = safe.story_text_config;
@@ -130,16 +131,27 @@ export default function ApiConfig() {
     if (safe.api_usage_pricing) out.api_usage_pricing = safe.api_usage_pricing;
 
     const tts = safe.story_tts_config;
-    const openai = tts?.options?.openai;
-    const gemini = tts?.options?.gemini;
-    const mistral = tts?.options?.mistral;
-    const ttsComplete =
-      hasText(tts?.enabled) &&
-      hasText(openai?.secret) && hasText(openai?.model) && hasText(openai?.voice) &&
-      hasText(gemini?.secret) && hasText(gemini?.model) &&
-      hasText(mistral?.secret) && hasText(mistral?.model) && hasText(mistral?.voice);
-
-    if (ttsComplete) out.story_tts_config = tts;
+    if (tts) {
+      out.story_tts_config = {
+        enabled: strOrFallback(tts?.enabled, "gemini"),
+        options: {
+          openai: {
+            secret: strOrFallback(tts?.options?.openai?.secret, "__unused__"),
+            model: strOrFallback(tts?.options?.openai?.model, "gpt-4o-mini-tts"),
+            voice: strOrFallback(tts?.options?.openai?.voice, "coral"),
+          },
+          gemini: {
+            secret: strOrFallback(tts?.options?.gemini?.secret, "__unused__"),
+            model: strOrFallback(tts?.options?.gemini?.model, "gemini-2.5-flash-preview-tts"),
+          },
+          mistral: {
+            secret: strOrFallback(tts?.options?.mistral?.secret, "__unused__"),
+            model: strOrFallback(tts?.options?.mistral?.model, "voxtral-mini-tts-2603"),
+            voice: strOrFallback(tts?.options?.mistral?.voice, "jane curious"),
+          },
+        },
+      };
+    }
 
     return out;
   };
