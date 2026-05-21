@@ -14,6 +14,84 @@ import {
   Save
 } from "lucide-react";
 
+const SettingRow = ({ label, description, children, layout = "horizontal" }: any) => (
+  <div className={`py-5 border-b border-gray-100 last:border-0 ${layout === 'horizontal' ? 'flex flex-col lg:flex-row lg:items-start justify-between gap-6' : 'flex flex-col gap-3'}`}>
+    <div className={layout === 'horizontal' ? "lg:w-5/12 shrink-0" : ""}>
+      <h4 className="text-sm font-semibold text-gray-900">{label}</h4>
+      {description && <p className="text-[13px] text-gray-500 mt-1.5 leading-relaxed">{description}</p>}
+    </div>
+    <div className={layout === 'horizontal' ? "lg:w-7/12 w-full" : "w-full"}>
+      {children}
+    </div>
+  </div>
+);
+
+const InputField = ({ value, onChange, type = "text", placeholder = "", fieldId = "", showKeys = {}, toggleKeyVisibility = () => {} }: any) => {
+  const isPassword = type === "password";
+  const isVisible = showKeys[fieldId];
+  const inputType = isPassword ? (isVisible ? "text" : "password") : type;
+  const [draftValue, setDraftValue] = useState(value ?? "");
+
+  useEffect(() => {
+    setDraftValue(value ?? "");
+  }, [value]);
+
+  return (
+    <div className="relative group w-full">
+      <input
+        type={inputType}
+        value={draftValue}
+        onChange={(e) => setDraftValue(e.target.value)}
+        onBlur={() => onChange(draftValue)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            onChange(draftValue);
+            (e.target as HTMLInputElement).blur();
+          }
+        }}
+        placeholder={placeholder}
+        className="w-full p-2.5 px-3.5 pr-10 rounded-lg border border-gray-200 outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all text-[14px] bg-white text-gray-800 font-medium hover:border-gray-300 placeholder:text-gray-400 placeholder:font-normal shadow-sm"
+      />
+      {isPassword && (
+        <button
+          type="button"
+          onClick={() => toggleKeyVisibility(fieldId)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-purple-600 bg-white rounded-md transition-colors"
+        >
+          {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+        </button>
+      )}
+    </div>
+  );
+};
+
+const SelectField = ({ value, onChange, options }: any) => {
+  return (
+    <select
+      value={value ?? ""}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full p-2.5 px-3.5 rounded-lg border border-gray-200 outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all text-[14px] bg-white text-gray-800 font-medium hover:border-gray-300 cursor-pointer appearance-none shadow-sm"
+      style={{ backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1em' }}
+    >
+      <option value="" disabled>Select option...</option>
+      {options.map((opt: any) => (
+        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      ))}
+    </select>
+  );
+};
+
+const Section = ({ title, children }: any) => (
+  <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden mb-8">
+    <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+      <h3 className="text-base font-bold text-gray-900">{title}</h3>
+    </div>
+    <div className="px-6">
+      {children}
+    </div>
+  </div>
+);
+
 export default function ApiConfig() {
   const [configs, setConfigs] = useState<any>({});
   const [loading, setLoading] = useState(true);
@@ -38,10 +116,43 @@ export default function ApiConfig() {
     fetchConfigs();
   }, []);
 
+  const sanitizePayloadForApi = (rawConfigs: any) => {
+    const safe = rawConfigs || {};
+    const hasText = (v: any) => typeof v === "string" && v.trim().length > 0;
+    const out: Record<string, any> = {};
+
+    if (safe.story_text_config) out.story_text_config = safe.story_text_config;
+    if (safe.story_image_config) out.story_image_config = safe.story_image_config;
+    if (safe.song_text_config) out.song_text_config = safe.song_text_config;
+    if (safe.song_audio_config) out.song_audio_config = safe.song_audio_config;
+    if (safe.song_image_config) out.song_image_config = safe.song_image_config;
+    if (safe.title_text_config) out.title_text_config = safe.title_text_config;
+    if (safe.api_usage_pricing) out.api_usage_pricing = safe.api_usage_pricing;
+
+    const tts = safe.story_tts_config;
+    const openai = tts?.options?.openai;
+    const gemini = tts?.options?.gemini;
+    const mistral = tts?.options?.mistral;
+    const ttsComplete =
+      hasText(tts?.enabled) &&
+      hasText(openai?.secret) && hasText(openai?.model) && hasText(openai?.voice) &&
+      hasText(gemini?.secret) && hasText(gemini?.model) &&
+      hasText(mistral?.secret) && hasText(mistral?.model) && hasText(mistral?.voice);
+
+    if (ttsComplete) out.story_tts_config = tts;
+
+    return out;
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.post("/api/admin/api-config", configs);
+      const payload = sanitizePayloadForApi(configs);
+      if (!Object.keys(payload).length) {
+        toast.error("No valid configuration changes to save yet.");
+        return;
+      }
+      await api.post("/api/admin/api-config", payload);
       toast.success("Configurations updated successfully");
     } catch (error) {
       console.error("Failed to update configs:", error);
@@ -83,85 +194,6 @@ export default function ApiConfig() {
     { id: 'song', label: 'Song Config', icon: Music },
     { id: 'economics', label: 'Usage Costs', icon: DollarSign },
   ];
-
-  // Components
-  const SettingRow = ({ label, description, children, layout = "horizontal" }: any) => (
-    <div className={`py-5 border-b border-gray-100 last:border-0 ${layout === 'horizontal' ? 'flex flex-col lg:flex-row lg:items-start justify-between gap-6' : 'flex flex-col gap-3'}`}>
-      <div className={layout === 'horizontal' ? "lg:w-5/12 shrink-0" : ""}>
-        <h4 className="text-sm font-semibold text-gray-900">{label}</h4>
-        {description && <p className="text-[13px] text-gray-500 mt-1.5 leading-relaxed">{description}</p>}
-      </div>
-      <div className={layout === 'horizontal' ? "lg:w-7/12 w-full" : "w-full"}>
-        {children}
-      </div>
-    </div>
-  );
-
-  const InputField = ({ value, onChange, type = "text", placeholder = "", fieldId = "" }: any) => {
-    const isPassword = type === "password";
-    const isVisible = showKeys[fieldId];
-    const inputType = isPassword ? (isVisible ? "text" : "password") : type;
-    const [draftValue, setDraftValue] = useState(value ?? "");
-
-    useEffect(() => {
-      setDraftValue(value ?? "");
-    }, [value]);
-
-    return (
-      <div className="relative group w-full">
-        <input
-          type={inputType}
-          value={draftValue}
-          onChange={(e) => setDraftValue(e.target.value)}
-          onBlur={() => onChange(draftValue)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              onChange(draftValue);
-              (e.target as HTMLInputElement).blur();
-            }
-          }}
-          placeholder={placeholder}
-          className="w-full p-2.5 px-3.5 pr-10 rounded-lg border border-gray-200 outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all text-[14px] bg-white text-gray-800 font-medium hover:border-gray-300 placeholder:text-gray-400 placeholder:font-normal shadow-sm"
-        />
-        {isPassword && (
-          <button
-            type="button"
-            onClick={() => toggleKeyVisibility(fieldId)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-purple-600 bg-white rounded-md transition-colors"
-          >
-            {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
-        )}
-      </div>
-    );
-  };
-
-  const SelectField = ({ value, onChange, options }: any) => {
-    return (
-      <select
-        value={value ?? ""}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full p-2.5 px-3.5 rounded-lg border border-gray-200 outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all text-[14px] bg-white text-gray-800 font-medium hover:border-gray-300 cursor-pointer appearance-none shadow-sm"
-        style={{ backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1em' }}
-      >
-        <option value="" disabled>Select option...</option>
-        {options.map((opt: any) => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
-      </select>
-    );
-  };
-
-  const Section = ({ title, children }: any) => (
-    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden mb-8">
-      <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
-        <h3 className="text-base font-bold text-gray-900">{title}</h3>
-      </div>
-      <div className="px-6">
-        {children}
-      </div>
-    </div>
-  );
 
   return (
     <div className="flex items-start justify-center bg-[#F9FAFB] min-h-screen">
@@ -238,6 +270,8 @@ export default function ApiConfig() {
                       <InputField 
                         type="password"
                         fieldId="title_text_secret"
+                        showKeys={showKeys}
+                        toggleKeyVisibility={toggleKeyVisibility}
                         placeholder="AIzaSy..."
                         value={configs.title_text_config?.secret}
                         onChange={(val: string) => updateNestedValue('title_text_config', 'secret', val)}
@@ -276,6 +310,8 @@ export default function ApiConfig() {
                       <InputField
                         type="password"
                         fieldId="story_key"
+                        showKeys={showKeys}
+                        toggleKeyVisibility={toggleKeyVisibility}
                         placeholder="AIzaSy..."
                         value={configs.story_text_config?.secret}
                         onChange={(val: string) => updateNestedValue('story_text_config', 'secret', val)}
@@ -299,6 +335,8 @@ export default function ApiConfig() {
                       <InputField
                         type="password"
                         fieldId="story_image_secret"
+                        showKeys={showKeys}
+                        toggleKeyVisibility={toggleKeyVisibility}
                         placeholder="AIzaSy..."
                         value={configs.story_image_config?.secret}
                         onChange={(val: string) => updateNestedValue('story_image_config', 'secret', val)}
@@ -325,6 +363,8 @@ export default function ApiConfig() {
                           <InputField 
                             type="password"
                             fieldId="story_tts_gemini_secret"
+                            showKeys={showKeys}
+                            toggleKeyVisibility={toggleKeyVisibility}
                             placeholder="AIzaSy..."
                             value={configs.story_tts_config?.options?.gemini?.secret}
                             onChange={(val: string) => updateNestedValue('story_tts_config', 'options.gemini.secret', val)}
@@ -346,6 +386,8 @@ export default function ApiConfig() {
                           <InputField 
                             type="password"
                             fieldId="story_tts_mistral_secret"
+                            showKeys={showKeys}
+                            toggleKeyVisibility={toggleKeyVisibility}
                             value={configs.story_tts_config?.options?.mistral?.secret}
                             onChange={(val: string) => updateNestedValue('story_tts_config', 'options.mistral.secret', val)}
                           />
@@ -373,6 +415,8 @@ export default function ApiConfig() {
                           <InputField 
                             type="password"
                             fieldId="story_tts_openai_secret"
+                            showKeys={showKeys}
+                            toggleKeyVisibility={toggleKeyVisibility}
                             value={configs.story_tts_config?.options?.openai?.secret}
                             onChange={(val: string) => updateNestedValue('story_tts_config', 'options.openai.secret', val)}
                           />
@@ -405,6 +449,8 @@ export default function ApiConfig() {
                       <InputField 
                         type="password"
                         fieldId="song_text_secret"
+                        showKeys={showKeys}
+                        toggleKeyVisibility={toggleKeyVisibility}
                         value={configs.song_text_config?.secret}
                         onChange={(val: string) => updateNestedValue('song_text_config', 'secret', val)}
                       />
@@ -413,6 +459,8 @@ export default function ApiConfig() {
                       <InputField
                         type="password"
                         fieldId="song_audio_secret"
+                        showKeys={showKeys}
+                        toggleKeyVisibility={toggleKeyVisibility}
                         value={configs.song_audio_config?.secret}
                         onChange={(val: string) => updateNestedValue('song_audio_config', 'secret', val)}
                       />
@@ -434,6 +482,8 @@ export default function ApiConfig() {
                       <InputField
                         type="password"
                         fieldId="song_image_secret"
+                        showKeys={showKeys}
+                        toggleKeyVisibility={toggleKeyVisibility}
                         placeholder="AIzaSy..."
                         value={configs.song_image_config?.secret}
                         onChange={(val: string) => updateNestedValue('song_image_config', 'secret', val)}
