@@ -122,6 +122,15 @@ const getNormalizedSongAudioConfig = (songAudioConfig: any) => {
   };
 };
 
+const normalizeApiConfigsForForm = (rawConfigs: any) => {
+  const safe = rawConfigs || {};
+
+  return {
+    ...safe,
+    song_audio_config: getNormalizedSongAudioConfig(safe.song_audio_config),
+  };
+};
+
 export default function ApiConfig() {
   const [configs, setConfigs] = useState<any>({});
   const [loading, setLoading] = useState(true);
@@ -133,7 +142,7 @@ export default function ApiConfig() {
     setLoading(true);
     try {
       const response = await api.get("/api/admin/api-config");
-      setConfigs(response.data.data);
+      setConfigs(normalizeApiConfigsForForm(response.data.data));
     } catch (error) {
       console.error("Failed to fetch configs:", error);
       toast.error("Failed to load configurations");
