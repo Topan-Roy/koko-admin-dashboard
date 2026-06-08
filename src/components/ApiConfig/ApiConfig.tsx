@@ -3,30 +3,49 @@ import AdminHeader from "../ui/AdminHeader";
 import SideBar from "../ui/SideBar";
 import api from "../../Context/api";
 import { toast } from "react-toastify";
-import { 
-  Music, 
-  DollarSign, 
-  Eye, 
-  EyeOff, 
+import {
+  Music,
+  DollarSign,
+  Eye,
+  EyeOff,
   Cpu,
   Route,
   Shield,
-  Save
+  Save,
 } from "lucide-react";
 
-const SettingRow = ({ label, description, children, layout = "horizontal" }: any) => (
-  <div className={`py-5 border-b border-gray-100 last:border-0 ${layout === 'horizontal' ? 'flex flex-col lg:flex-row lg:items-start justify-between gap-6' : 'flex flex-col gap-3'}`}>
-    <div className={layout === 'horizontal' ? "lg:w-5/12 shrink-0" : ""}>
+const SettingRow = ({
+  label,
+  description,
+  children,
+  layout = "horizontal",
+}: any) => (
+  <div
+    className={`py-5 border-b border-gray-100 last:border-0 ${layout === "horizontal" ? "flex flex-col lg:flex-row lg:items-start justify-between gap-6" : "flex flex-col gap-3"}`}
+  >
+    <div className={layout === "horizontal" ? "lg:w-5/12 shrink-0" : ""}>
       <h4 className="text-sm font-semibold text-gray-900">{label}</h4>
-      {description && <p className="text-[13px] text-gray-500 mt-1.5 leading-relaxed">{description}</p>}
+      {description && (
+        <p className="text-[13px] text-gray-500 mt-1.5 leading-relaxed">
+          {description}
+        </p>
+      )}
     </div>
-    <div className={layout === 'horizontal' ? "lg:w-7/12 w-full" : "w-full"}>
+    <div className={layout === "horizontal" ? "lg:w-7/12 w-full" : "w-full"}>
       {children}
     </div>
   </div>
 );
 
-const InputField = ({ value, onChange, type = "text", placeholder = "", fieldId = "", showKeys = {}, toggleKeyVisibility = () => {} }: any) => {
+const InputField = ({
+  value,
+  onChange,
+  type = "text",
+  placeholder = "",
+  fieldId = "",
+  showKeys = {},
+  toggleKeyVisibility = () => {},
+}: any) => {
   const isPassword = type === "password";
   const isVisible = showKeys[fieldId];
   const inputType = isPassword ? (isVisible ? "text" : "password") : type;
@@ -71,11 +90,21 @@ const SelectField = ({ value, onChange, options }: any) => {
       value={value ?? ""}
       onChange={(e) => onChange(e.target.value)}
       className="w-full p-2.5 px-3.5 rounded-lg border border-gray-200 outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all text-[14px] bg-white text-gray-800 font-medium hover:border-gray-300 cursor-pointer appearance-none shadow-sm"
-      style={{ backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1em' }}
+      style={{
+        backgroundImage:
+          "url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e\")",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "right 1rem center",
+        backgroundSize: "1em",
+      }}
     >
-      <option value="" disabled>Select option...</option>
+      <option value="" disabled>
+        Select option...
+      </option>
       {options.map((opt: any) => (
-        <option key={opt.value} value={opt.value}>{opt.label}</option>
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
       ))}
     </select>
   );
@@ -86,9 +115,7 @@ const Section = ({ title, children }: any) => (
     <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
       <h3 className="text-base font-bold text-gray-900">{title}</h3>
     </div>
-    <div className="px-6">
-      {children}
-    </div>
+    <div className="px-6">{children}</div>
   </div>
 );
 
@@ -102,7 +129,8 @@ const getNormalizedSongAudioConfig = (songAudioConfig: any) => {
         },
         gemini: {
           secret: songAudioConfig?.options?.gemini?.secret || "",
-          model: songAudioConfig?.options?.gemini?.model || "lyria-3-clip-preview",
+          model:
+            songAudioConfig?.options?.gemini?.model || "lyria-3-clip-preview",
         },
       },
     };
@@ -136,7 +164,7 @@ export default function ApiConfig() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
-  const [activeTab, setActiveTab] = useState('title');
+  const [activeTab, setActiveTab] = useState("title");
 
   const fetchConfigs = async () => {
     setLoading(true);
@@ -162,7 +190,8 @@ export default function ApiConfig() {
     const out: Record<string, any> = {};
 
     if (safe.story_text_config) out.story_text_config = safe.story_text_config;
-    if (safe.story_image_config) out.story_image_config = safe.story_image_config;
+    if (safe.story_image_config)
+      out.story_image_config = safe.story_image_config;
     if (safe.song_text_config) out.song_text_config = safe.song_text_config;
     if (safe.song_audio_config) {
       const songAudio = getNormalizedSongAudioConfig(safe.song_audio_config);
@@ -170,11 +199,20 @@ export default function ApiConfig() {
         enabled: strOrFallback(songAudio?.enabled, "musicgpt"),
         options: {
           musicgpt: {
-            secret: strOrFallback(songAudio?.options?.musicgpt?.secret, "__unused__"),
+            secret: strOrFallback(
+              songAudio?.options?.musicgpt?.secret,
+              "__unused__",
+            ),
           },
           gemini: {
-            secret: strOrFallback(songAudio?.options?.gemini?.secret, "__unused__"),
-            model: strOrFallback(songAudio?.options?.gemini?.model, "lyria-3-clip-preview"),
+            secret: strOrFallback(
+              songAudio?.options?.gemini?.secret,
+              "__unused__",
+            ),
+            model: strOrFallback(
+              songAudio?.options?.gemini?.model,
+              "lyria-3-clip-preview",
+            ),
           },
         },
       };
@@ -190,16 +228,25 @@ export default function ApiConfig() {
         options: {
           openai: {
             secret: strOrFallback(tts?.options?.openai?.secret, "__unused__"),
-            model: strOrFallback(tts?.options?.openai?.model, "gpt-4o-mini-tts"),
+            model: strOrFallback(
+              tts?.options?.openai?.model,
+              "gpt-4o-mini-tts",
+            ),
             voice: strOrFallback(tts?.options?.openai?.voice, "coral"),
           },
           gemini: {
             secret: strOrFallback(tts?.options?.gemini?.secret, "__unused__"),
-            model: strOrFallback(tts?.options?.gemini?.model, "gemini-2.5-flash-preview-tts"),
+            model: strOrFallback(
+              tts?.options?.gemini?.model,
+              "gemini-2.5-flash-preview-tts",
+            ),
           },
           mistral: {
             secret: strOrFallback(tts?.options?.mistral?.secret, "__unused__"),
-            model: strOrFallback(tts?.options?.mistral?.model, "voxtral-mini-tts-2603"),
+            model: strOrFallback(
+              tts?.options?.mistral?.model,
+              "voxtral-mini-tts-2603",
+            ),
             voice: strOrFallback(tts?.options?.mistral?.voice, "jane curious"),
           },
         },
@@ -232,12 +279,12 @@ export default function ApiConfig() {
       const currentConfigs = { ...prevConfigs };
       const root = { ...(currentConfigs[key] || {}) };
       currentConfigs[key] = root;
-      const keys = path.split('.');
+      const keys = path.split(".");
 
       let temp = root;
       for (let i = 0; i < keys.length - 1; i++) {
         const next = temp[keys[i]];
-        const nextCloned = next && typeof next === 'object' ? { ...next } : {};
+        const nextCloned = next && typeof next === "object" ? { ...next } : {};
         temp[keys[i]] = nextCloned;
         temp = nextCloned;
       }
@@ -247,18 +294,20 @@ export default function ApiConfig() {
   };
 
   const toggleKeyVisibility = (field: string) => {
-    setShowKeys(prev => ({ ...prev, [field]: !prev[field] }));
+    setShowKeys((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
   const storyImageModelValue = configs.story_image_config?.model || "";
   const songImageModelValue = configs.song_image_config?.model || "";
-  const normalizedSongAudioConfig = getNormalizedSongAudioConfig(configs.song_audio_config);
+  const normalizedSongAudioConfig = getNormalizedSongAudioConfig(
+    configs.song_audio_config,
+  );
 
   const tabs = [
-    { id: 'title', label: 'Title Config', icon: Route },
-    { id: 'story', label: 'Story Config', icon: Cpu },
-    { id: 'song', label: 'Song Config', icon: Music },
-    { id: 'economics', label: 'Usage Costs', icon: DollarSign },
+    { id: "title", label: "Title Config", icon: Route },
+    { id: "story", label: "Story Config", icon: Cpu },
+    { id: "song", label: "Song Config", icon: Music },
+    { id: "economics", label: "Usage Costs", icon: DollarSign },
   ];
 
   return (
@@ -266,7 +315,7 @@ export default function ApiConfig() {
       <SideBar />
       <div className="w-full pb-12">
         <AdminHeader />
-        
+
         {/* Page Header */}
         <div className="px-8 py-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200/60 bg-white sticky top-0 z-20">
           <div>
@@ -274,7 +323,9 @@ export default function ApiConfig() {
               <Shield className="text-purple-600" size={24} />
               Platform Configuration
             </h1>
-            <p className="text-sm text-gray-500 mt-1">Manage title, story, song, and usage-cost settings.</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Manage title, story, song, and usage-cost settings.
+            </p>
           </div>
           <button
             onClick={handleSave}
@@ -293,11 +344,12 @@ export default function ApiConfig() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32">
             <div className="w-10 h-10 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
-            <p className="text-gray-500 font-medium">Loading configurations...</p>
+            <p className="text-gray-500 font-medium">
+              Loading configurations...
+            </p>
           </div>
         ) : (
           <div className="px-8 mt-8 flex flex-col lg:flex-row gap-10">
-            
             {/* Left Sidebar Tabs */}
             <div className="lg:w-64 shrink-0">
               <nav className="flex flex-col gap-1 sticky top-32">
@@ -309,12 +361,17 @@ export default function ApiConfig() {
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                        isActive 
-                          ? 'bg-purple-50 text-purple-700' 
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        isActive
+                          ? "bg-purple-50 text-purple-700"
+                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                       }`}
                     >
-                      <Icon size={18} className={isActive ? "text-purple-600" : "text-gray-400"} />
+                      <Icon
+                        size={18}
+                        className={
+                          isActive ? "text-purple-600" : "text-gray-400"
+                        }
+                      />
                       {tab.label}
                     </button>
                   );
@@ -324,23 +381,24 @@ export default function ApiConfig() {
 
             {/* Right Content Area */}
             <div className="flex-1 max-w-4xl">
-              
               {/* TAB: TITLE CONFIG */}
-              {activeTab === 'title' && (
+              {activeTab === "title" && (
                 <div className="animate-[fadeIn_0.3s_ease-out]">
                   <Section title="Title Generation (Gemini)">
-                    <SettingRow 
+                    <SettingRow
                       label="Title API Key"
                       description="API key used for generating story and song titles."
                     >
-                      <InputField 
+                      <InputField
                         type="password"
                         fieldId="title_text_secret"
                         showKeys={showKeys}
                         toggleKeyVisibility={toggleKeyVisibility}
                         placeholder="AIzaSy..."
                         value={configs.title_text_config?.secret}
-                        onChange={(val: string) => updateNestedValue('title_text_config', 'secret', val)}
+                        onChange={(val: string) =>
+                          updateNestedValue("title_text_config", "secret", val)
+                        }
                       />
                     </SettingRow>
                     <SettingRow
@@ -350,23 +408,29 @@ export default function ApiConfig() {
                       <InputField
                         placeholder="gemini-2.5-flash"
                         value={configs.title_text_config?.model}
-                        onChange={(val: string) => updateNestedValue('title_text_config', 'model', val)}
+                        onChange={(val: string) =>
+                          updateNestedValue("title_text_config", "model", val)
+                        }
                       />
                     </SettingRow>
                   </Section>
-
                 </div>
               )}
 
               {/* TAB: STORY */}
-              {activeTab === 'story' && (
+              {activeTab === "story" && (
                 <div className="animate-[fadeIn_0.3s_ease-out]">
                   <Section title="Story Creation (Gemini)">
-                      <SettingRow label="Story Model" description="Choose which Gemini model writes stories.">
-                      <InputField 
+                    <SettingRow
+                      label="Story Model"
+                      description="Choose which Gemini model writes stories."
+                    >
+                      <InputField
                         placeholder="gemini-2.5-flash"
                         value={configs.story_text_config?.model}
-                        onChange={(val: string) => updateNestedValue('story_text_config', 'model', val)}
+                        onChange={(val: string) =>
+                          updateNestedValue("story_text_config", "model", val)
+                        }
                       />
                     </SettingRow>
                     <SettingRow
@@ -380,10 +444,11 @@ export default function ApiConfig() {
                         toggleKeyVisibility={toggleKeyVisibility}
                         placeholder="AIzaSy..."
                         value={configs.story_text_config?.secret}
-                        onChange={(val: string) => updateNestedValue('story_text_config', 'secret', val)}
+                        onChange={(val: string) =>
+                          updateNestedValue("story_text_config", "secret", val)
+                        }
                       />
                     </SettingRow>
-                  
                   </Section>
 
                   <Section title="Story Images (Gemini)">
@@ -391,13 +456,18 @@ export default function ApiConfig() {
                       label="Story Image Model"
                       description="Model used for generating story scene images."
                     >
-                      <InputField 
+                      <InputField
                         placeholder="gemini-2.5-flash-image"
                         value={storyImageModelValue}
-                        onChange={(val: string) => updateNestedValue('story_image_config', 'model', val)}
+                        onChange={(val: string) =>
+                          updateNestedValue("story_image_config", "model", val)
+                        }
                       />
                     </SettingRow>
-                    <SettingRow label="Story Image API Key" description="API key used for story image generation.">
+                    <SettingRow
+                      label="Story Image API Key"
+                      description="API key used for story image generation."
+                    >
                       <InputField
                         type="password"
                         fieldId="story_image_secret"
@@ -405,99 +475,173 @@ export default function ApiConfig() {
                         toggleKeyVisibility={toggleKeyVisibility}
                         placeholder="AIzaSy..."
                         value={configs.story_image_config?.secret}
-                        onChange={(val: string) => updateNestedValue('story_image_config', 'secret', val)}
+                        onChange={(val: string) =>
+                          updateNestedValue("story_image_config", "secret", val)
+                        }
                       />
                     </SettingRow>
                   </Section>
 
                   <Section title="Story Voice">
-                    <SettingRow label="Voice Engine" description="Select the service used to generate story audio.">
+                    <SettingRow
+                      label="Voice Engine"
+                      description="Select the service used to generate story audio."
+                    >
                       <SelectField
-                        value={configs.story_tts_config?.enabled || 'gemini'}
-                        onChange={(val: string) => updateNestedValue('story_tts_config', 'enabled', val)}
+                        value={configs.story_tts_config?.enabled || "gemini"}
+                        onChange={(val: string) =>
+                          updateNestedValue("story_tts_config", "enabled", val)
+                        }
                         options={[
-                          { label: 'Google Gemini', value: 'gemini' },
-                          { label: 'Mistral AI', value: 'mistral' },
-                          { label: 'OpenAI', value: 'openai' },
+                          { label: "Google Gemini", value: "gemini" },
+                          { label: "Mistral AI", value: "mistral" },
+                          { label: "OpenAI", value: "openai" },
                         ]}
                       />
                     </SettingRow>
 
-                    {(!configs.story_tts_config?.enabled || configs.story_tts_config?.enabled === 'gemini') && (
+                    {(!configs.story_tts_config?.enabled ||
+                      configs.story_tts_config?.enabled === "gemini") && (
                       <>
                         <SettingRow label="Gemini API Key">
-                          <InputField 
+                          <InputField
                             type="password"
                             fieldId="story_tts_gemini_secret"
                             showKeys={showKeys}
                             toggleKeyVisibility={toggleKeyVisibility}
                             placeholder="AIzaSy..."
-                            value={configs.story_tts_config?.options?.gemini?.secret}
-                            onChange={(val: string) => updateNestedValue('story_tts_config', 'options.gemini.secret', val)}
+                            value={
+                              configs.story_tts_config?.options?.gemini?.secret
+                            }
+                            onChange={(val: string) =>
+                              updateNestedValue(
+                                "story_tts_config",
+                                "options.gemini.secret",
+                                val,
+                              )
+                            }
                           />
                         </SettingRow>
                         <SettingRow label="Gemini Voice Model">
-                          <InputField 
+                          <InputField
                             placeholder="gemini-2.5-flash-preview-tts"
-                            value={configs.story_tts_config?.options?.gemini?.model}
-                            onChange={(val: string) => updateNestedValue('story_tts_config', 'options.gemini.model', val)}
+                            value={
+                              configs.story_tts_config?.options?.gemini?.model
+                            }
+                            onChange={(val: string) =>
+                              updateNestedValue(
+                                "story_tts_config",
+                                "options.gemini.model",
+                                val,
+                              )
+                            }
                           />
                         </SettingRow>
                       </>
                     )}
 
-                    {configs.story_tts_config?.enabled === 'mistral' && (
+                    {configs.story_tts_config?.enabled === "mistral" && (
                       <>
                         <SettingRow label="Mistral API Key">
-                          <InputField 
+                          <InputField
                             type="password"
                             fieldId="story_tts_mistral_secret"
                             showKeys={showKeys}
                             toggleKeyVisibility={toggleKeyVisibility}
-                            value={configs.story_tts_config?.options?.mistral?.secret}
-                            onChange={(val: string) => updateNestedValue('story_tts_config', 'options.mistral.secret', val)}
+                            value={
+                              configs.story_tts_config?.options?.mistral?.secret
+                            }
+                            onChange={(val: string) =>
+                              updateNestedValue(
+                                "story_tts_config",
+                                "options.mistral.secret",
+                                val,
+                              )
+                            }
                           />
                         </SettingRow>
                         <SettingRow label="Mistral Model and Voice">
                           <div className="grid grid-cols-2 gap-3">
-                            <InputField 
+                            <InputField
                               placeholder="voxtral-mini-tts-2603"
-                              value={configs.story_tts_config?.options?.mistral?.model}
-                              onChange={(val: string) => updateNestedValue('story_tts_config', 'options.mistral.model', val)}
+                              value={
+                                configs.story_tts_config?.options?.mistral
+                                  ?.model
+                              }
+                              onChange={(val: string) =>
+                                updateNestedValue(
+                                  "story_tts_config",
+                                  "options.mistral.model",
+                                  val,
+                                )
+                              }
                             />
-                            <InputField 
+                            <InputField
                               placeholder="jane curious"
-                              value={configs.story_tts_config?.options?.mistral?.voice}
-                              onChange={(val: string) => updateNestedValue('story_tts_config', 'options.mistral.voice', val)}
+                              value={
+                                configs.story_tts_config?.options?.mistral
+                                  ?.voice
+                              }
+                              onChange={(val: string) =>
+                                updateNestedValue(
+                                  "story_tts_config",
+                                  "options.mistral.voice",
+                                  val,
+                                )
+                              }
                             />
                           </div>
                         </SettingRow>
                       </>
                     )}
 
-                    {configs.story_tts_config?.enabled === 'openai' && (
+                    {configs.story_tts_config?.enabled === "openai" && (
                       <>
                         <SettingRow label="OpenAI API Key">
-                          <InputField 
+                          <InputField
                             type="password"
                             fieldId="story_tts_openai_secret"
                             showKeys={showKeys}
                             toggleKeyVisibility={toggleKeyVisibility}
-                            value={configs.story_tts_config?.options?.openai?.secret}
-                            onChange={(val: string) => updateNestedValue('story_tts_config', 'options.openai.secret', val)}
+                            value={
+                              configs.story_tts_config?.options?.openai?.secret
+                            }
+                            onChange={(val: string) =>
+                              updateNestedValue(
+                                "story_tts_config",
+                                "options.openai.secret",
+                                val,
+                              )
+                            }
                           />
                         </SettingRow>
                         <SettingRow label="OpenAI Model and Voice">
                           <div className="grid grid-cols-2 gap-3">
-                            <InputField 
+                            <InputField
                               placeholder="gpt-4o-mini-tts"
-                              value={configs.story_tts_config?.options?.openai?.model}
-                              onChange={(val: string) => updateNestedValue('story_tts_config', 'options.openai.model', val)}
+                              value={
+                                configs.story_tts_config?.options?.openai?.model
+                              }
+                              onChange={(val: string) =>
+                                updateNestedValue(
+                                  "story_tts_config",
+                                  "options.openai.model",
+                                  val,
+                                )
+                              }
                             />
-                            <InputField 
+                            <InputField
                               placeholder="coral"
-                              value={configs.story_tts_config?.options?.openai?.voice}
-                              onChange={(val: string) => updateNestedValue('story_tts_config', 'options.openai.voice', val)}
+                              value={
+                                configs.story_tts_config?.options?.openai?.voice
+                              }
+                              onChange={(val: string) =>
+                                updateNestedValue(
+                                  "story_tts_config",
+                                  "options.openai.voice",
+                                  val,
+                                )
+                              }
                             />
                           </div>
                         </SettingRow>
@@ -508,7 +652,7 @@ export default function ApiConfig() {
               )}
 
               {/* TAB: SONG */}
-              {activeTab === 'song' && (
+              {activeTab === "song" && (
                 <div className="animate-[fadeIn_0.3s_ease-out]">
                   <Section title="Song Generations">
                     <SettingRow
@@ -517,55 +661,97 @@ export default function ApiConfig() {
                     >
                       <SelectField
                         value={normalizedSongAudioConfig.enabled}
-                        onChange={(val: string) => updateNestedValue('song_audio_config', 'enabled', val)}
+                        onChange={(val: string) =>
+                          updateNestedValue("song_audio_config", "enabled", val)
+                        }
                         options={[
-                          { label: 'MusicGPT', value: 'musicgpt' },
-                          { label: 'Google Gemini', value: 'gemini' },
+                          { label: "MusicGPT", value: "musicgpt" },
+                          { label: "Google Gemini", value: "gemini" },
                         ]}
                       />
                     </SettingRow>
 
-                    <SettingRow label="Lyrics API Key" description="Used only for the MusicGPT lyrics generation step. Gemini song generation does not use this field.">
-                      <InputField 
-                        type="password"
-                        fieldId="song_text_secret"
-                        showKeys={showKeys}
-                        toggleKeyVisibility={toggleKeyVisibility}
-                        value={configs.song_text_config?.secret}
-                        onChange={(val: string) => updateNestedValue('song_text_config', 'secret', val)}
-                      />
-                    </SettingRow>
+                    {normalizedSongAudioConfig.enabled === "musicgpt" && (
+                      <SettingRow
+                        label="Lyrics API Key"
+                        description="Used only for the MusicGPT lyrics generation step. Gemini song generation does not use this field."
+                      >
+                        <InputField
+                          type="password"
+                          fieldId="song_text_secret"
+                          showKeys={showKeys}
+                          toggleKeyVisibility={toggleKeyVisibility}
+                          value={configs.song_text_config?.secret}
+                          onChange={(val: string) =>
+                            updateNestedValue("song_text_config", "secret", val)
+                          }
+                        />
+                      </SettingRow>
+                    )}
 
-                    {normalizedSongAudioConfig.enabled === 'musicgpt' && (
-                      <SettingRow label="MusicGPT Audio API Key" description="API key used for MusicGPT audio task generation.">
+                    {normalizedSongAudioConfig.enabled === "musicgpt" && (
+                      <SettingRow
+                        label="MusicGPT Audio API Key"
+                        description="API key used for MusicGPT audio task generation."
+                      >
                         <InputField
                           type="password"
                           fieldId="song_audio_musicgpt_secret"
                           showKeys={showKeys}
                           toggleKeyVisibility={toggleKeyVisibility}
-                          value={normalizedSongAudioConfig?.options?.musicgpt?.secret}
-                          onChange={(val: string) => updateNestedValue('song_audio_config', 'options.musicgpt.secret', val)}
+                          value={
+                            normalizedSongAudioConfig?.options?.musicgpt?.secret
+                          }
+                          onChange={(val: string) =>
+                            updateNestedValue(
+                              "song_audio_config",
+                              "options.musicgpt.secret",
+                              val,
+                            )
+                          }
                         />
                       </SettingRow>
                     )}
 
-                    {normalizedSongAudioConfig.enabled === 'gemini' && (
+                    {normalizedSongAudioConfig.enabled === "gemini" && (
                       <>
-                        <SettingRow label="Gemini Song API Key" description="API key used for Gemini/Lyria music generation.">
+                        <SettingRow
+                          label="Gemini Song API Key"
+                          description="API key used for Gemini/Lyria music generation."
+                        >
                           <InputField
                             type="password"
                             fieldId="song_audio_gemini_secret"
                             showKeys={showKeys}
                             toggleKeyVisibility={toggleKeyVisibility}
-                            value={normalizedSongAudioConfig?.options?.gemini?.secret}
-                            onChange={(val: string) => updateNestedValue('song_audio_config', 'options.gemini.secret', val)}
+                            value={
+                              normalizedSongAudioConfig?.options?.gemini?.secret
+                            }
+                            onChange={(val: string) =>
+                              updateNestedValue(
+                                "song_audio_config",
+                                "options.gemini.secret",
+                                val,
+                              )
+                            }
                           />
                         </SettingRow>
-                        <SettingRow label="Gemini Song Model" description="Model used for direct prompt-to-music generation.">
+                        <SettingRow
+                          label="Gemini Song Model"
+                          description="Model used for direct prompt-to-music generation."
+                        >
                           <InputField
                             placeholder="lyria-3-clip-preview"
-                            value={normalizedSongAudioConfig?.options?.gemini?.model}
-                            onChange={(val: string) => updateNestedValue('song_audio_config', 'options.gemini.model', val)}
+                            value={
+                              normalizedSongAudioConfig?.options?.gemini?.model
+                            }
+                            onChange={(val: string) =>
+                              updateNestedValue(
+                                "song_audio_config",
+                                "options.gemini.model",
+                                val,
+                              )
+                            }
                           />
                         </SettingRow>
                       </>
@@ -580,10 +766,15 @@ export default function ApiConfig() {
                       <InputField
                         placeholder="gemini-2.5-flash-image"
                         value={songImageModelValue}
-                        onChange={(val: string) => updateNestedValue('song_image_config', 'model', val)}
+                        onChange={(val: string) =>
+                          updateNestedValue("song_image_config", "model", val)
+                        }
                       />
                     </SettingRow>
-                    <SettingRow label="Song Cover API Key" description="API key used for song cover image generation.">
+                    <SettingRow
+                      label="Song Cover API Key"
+                      description="API key used for song cover image generation."
+                    >
                       <InputField
                         type="password"
                         fieldId="song_image_secret"
@@ -591,7 +782,9 @@ export default function ApiConfig() {
                         toggleKeyVisibility={toggleKeyVisibility}
                         placeholder="AIzaSy..."
                         value={configs.song_image_config?.secret}
-                        onChange={(val: string) => updateNestedValue('song_image_config', 'secret', val)}
+                        onChange={(val: string) =>
+                          updateNestedValue("song_image_config", "secret", val)
+                        }
                       />
                     </SettingRow>
                   </Section>
@@ -599,65 +792,140 @@ export default function ApiConfig() {
               )}
 
               {/* TAB: ECONOMICS */}
-              {activeTab === 'economics' && (
+              {activeTab === "economics" && (
                 <div className="animate-[fadeIn_0.3s_ease-out]">
                   <Section title="Estimated Usage Costs ($)">
-                    <SettingRow label="Gemini Text Cost" description="Estimated cost per 1M input and output tokens.">
+                    <SettingRow
+                      label="Gemini Text Cost"
+                      description="Estimated cost per 1M input and output tokens."
+                    >
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-[11px] font-semibold text-gray-500 mb-1 block">Input Cost</label>
-                          <InputField 
+                          <label className="text-[11px] font-semibold text-gray-500 mb-1 block">
+                            Input Cost
+                          </label>
+                          <InputField
                             type="number"
-                            value={configs.api_usage_pricing?.gemini_input_per_1m_tokens_usd} 
-                            onChange={(val: string) => updateNestedValue('api_usage_pricing', 'gemini_input_per_1m_tokens_usd', parseFloat(val))}
+                            value={
+                              configs.api_usage_pricing
+                                ?.gemini_input_per_1m_tokens_usd
+                            }
+                            onChange={(val: string) =>
+                              updateNestedValue(
+                                "api_usage_pricing",
+                                "gemini_input_per_1m_tokens_usd",
+                                parseFloat(val),
+                              )
+                            }
                           />
                         </div>
                         <div>
-                          <label className="text-[11px] font-semibold text-gray-500 mb-1 block">Output Cost</label>
-                          <InputField 
+                          <label className="text-[11px] font-semibold text-gray-500 mb-1 block">
+                            Output Cost
+                          </label>
+                          <InputField
                             type="number"
-                            value={configs.api_usage_pricing?.gemini_output_per_1m_tokens_usd} 
-                            onChange={(val: string) => updateNestedValue('api_usage_pricing', 'gemini_output_per_1m_tokens_usd', parseFloat(val))}
+                            value={
+                              configs.api_usage_pricing
+                                ?.gemini_output_per_1m_tokens_usd
+                            }
+                            onChange={(val: string) =>
+                              updateNestedValue(
+                                "api_usage_pricing",
+                                "gemini_output_per_1m_tokens_usd",
+                                parseFloat(val),
+                              )
+                            }
                           />
                         </div>
                       </div>
                     </SettingRow>
-                    <SettingRow label="Media Cost" description="Estimated cost for image generation and voice output.">
+                    <SettingRow
+                      label="Media Cost"
+                      description="Estimated cost for image generation and voice output."
+                    >
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-[11px] font-semibold text-gray-500 mb-1 block">Image (Per Edit/Gen)</label>
-                          <InputField 
+                          <label className="text-[11px] font-semibold text-gray-500 mb-1 block">
+                            Image (Per Edit/Gen)
+                          </label>
+                          <InputField
                             type="number"
-                            value={configs.api_usage_pricing?.gemini_image_per_image_usd} 
-                            onChange={(val: string) => updateNestedValue('api_usage_pricing', 'gemini_image_per_image_usd', parseFloat(val))}
+                            value={
+                              configs.api_usage_pricing
+                                ?.gemini_image_per_image_usd
+                            }
+                            onChange={(val: string) =>
+                              updateNestedValue(
+                                "api_usage_pricing",
+                                "gemini_image_per_image_usd",
+                                parseFloat(val),
+                              )
+                            }
                           />
                         </div>
                         <div>
-                          <label className="text-[11px] font-semibold text-gray-500 mb-1 block">GCP TTS (Per 1M Chars)</label>
-                          <InputField 
+                          <label className="text-[11px] font-semibold text-gray-500 mb-1 block">
+                            GCP TTS (Per 1M Chars)
+                          </label>
+                          <InputField
                             type="number"
-                            value={configs.api_usage_pricing?.gcp_tts_per_1m_chars_usd} 
-                            onChange={(val: string) => updateNestedValue('api_usage_pricing', 'gcp_tts_per_1m_chars_usd', parseFloat(val))}
+                            value={
+                              configs.api_usage_pricing
+                                ?.gcp_tts_per_1m_chars_usd
+                            }
+                            onChange={(val: string) =>
+                              updateNestedValue(
+                                "api_usage_pricing",
+                                "gcp_tts_per_1m_chars_usd",
+                                parseFloat(val),
+                              )
+                            }
                           />
                         </div>
                       </div>
                     </SettingRow>
-                    <SettingRow label="Song Cost" description="Estimated cost for lyrics generation and music task creation.">
+                    <SettingRow
+                      label="Song Cost"
+                      description="Estimated cost for lyrics generation and music task creation."
+                    >
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-[11px] font-semibold text-gray-500 mb-1 block">Lyrics (Per Request)</label>
+                          <label className="text-[11px] font-semibold text-gray-500 mb-1 block">
+                            Lyrics (Per Request)
+                          </label>
                           <InputField
                             type="number"
-                            value={configs.api_usage_pricing?.musicgpt_lyrics_per_request_usd}
-                            onChange={(val: string) => updateNestedValue('api_usage_pricing', 'musicgpt_lyrics_per_request_usd', parseFloat(val))}
+                            value={
+                              configs.api_usage_pricing
+                                ?.musicgpt_lyrics_per_request_usd
+                            }
+                            onChange={(val: string) =>
+                              updateNestedValue(
+                                "api_usage_pricing",
+                                "musicgpt_lyrics_per_request_usd",
+                                parseFloat(val),
+                              )
+                            }
                           />
                         </div>
                         <div>
-                          <label className="text-[11px] font-semibold text-gray-500 mb-1 block">Music Task (Per Request)</label>
+                          <label className="text-[11px] font-semibold text-gray-500 mb-1 block">
+                            Music Task (Per Request)
+                          </label>
                           <InputField
                             type="number"
-                            value={configs.api_usage_pricing?.musicgpt_music_task_per_request_usd}
-                            onChange={(val: string) => updateNestedValue('api_usage_pricing', 'musicgpt_music_task_per_request_usd', parseFloat(val))}
+                            value={
+                              configs.api_usage_pricing
+                                ?.musicgpt_music_task_per_request_usd
+                            }
+                            onChange={(val: string) =>
+                              updateNestedValue(
+                                "api_usage_pricing",
+                                "musicgpt_music_task_per_request_usd",
+                                parseFloat(val),
+                              )
+                            }
                           />
                         </div>
                       </div>
@@ -665,7 +933,6 @@ export default function ApiConfig() {
                   </Section>
                 </div>
               )}
-
             </div>
           </div>
         )}
