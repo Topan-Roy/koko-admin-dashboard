@@ -92,6 +92,36 @@ const Section = ({ title, children }: any) => (
   </div>
 );
 
+const getNormalizedSongAudioConfig = (songAudioConfig: any) => {
+  if (songAudioConfig?.enabled && songAudioConfig?.options) {
+    return {
+      enabled: songAudioConfig.enabled,
+      options: {
+        musicgpt: {
+          secret: songAudioConfig?.options?.musicgpt?.secret || "",
+        },
+        gemini: {
+          secret: songAudioConfig?.options?.gemini?.secret || "",
+          model: songAudioConfig?.options?.gemini?.model || "lyria-3-clip-preview",
+        },
+      },
+    };
+  }
+
+  return {
+    enabled: "musicgpt",
+    options: {
+      musicgpt: {
+        secret: songAudioConfig?.secret || "",
+      },
+      gemini: {
+        secret: "",
+        model: "lyria-3-clip-preview",
+      },
+    },
+  };
+};
+
 export default function ApiConfig() {
   const [configs, setConfigs] = useState<any>({});
   const [loading, setLoading] = useState(true);
@@ -125,7 +155,21 @@ export default function ApiConfig() {
     if (safe.story_text_config) out.story_text_config = safe.story_text_config;
     if (safe.story_image_config) out.story_image_config = safe.story_image_config;
     if (safe.song_text_config) out.song_text_config = safe.song_text_config;
-    if (safe.song_audio_config) out.song_audio_config = safe.song_audio_config;
+    if (safe.song_audio_config) {
+      const songAudio = getNormalizedSongAudioConfig(safe.song_audio_config);
+      out.song_audio_config = {
+        enabled: strOrFallback(songAudio?.enabled, "musicgpt"),
+        options: {
+          musicgpt: {
+            secret: strOrFallback(songAudio?.options?.musicgpt?.secret, "__unused__"),
+          },
+          gemini: {
+            secret: strOrFallback(songAudio?.options?.gemini?.secret, "__unused__"),
+            model: strOrFallback(songAudio?.options?.gemini?.model, "lyria-3-clip-preview"),
+          },
+        },
+      };
+    }
     if (safe.song_image_config) out.song_image_config = safe.song_image_config;
     if (safe.title_text_config) out.title_text_config = safe.title_text_config;
     if (safe.api_usage_pricing) out.api_usage_pricing = safe.api_usage_pricing;
@@ -199,6 +243,7 @@ export default function ApiConfig() {
 
   const storyImageModelValue = configs.story_image_config?.model || "";
   const songImageModelValue = configs.song_image_config?.model || "";
+  const normalizedSongAudioConfig = getNormalizedSongAudioConfig(configs.song_audio_config);
 
   const tabs = [
     { id: 'title', label: 'Title Config', icon: Route },
@@ -456,8 +501,22 @@ export default function ApiConfig() {
               {/* TAB: SONG */}
               {activeTab === 'song' && (
                 <div className="animate-[fadeIn_0.3s_ease-out]">
-                  <Section title="Song Generations (MusicGPT)">
-                    <SettingRow label="Lyrics API Key" description="API key used for song lyrics generation.">
+                  <Section title="Song Generations">
+                    <SettingRow
+                      label="Audio Engine"
+                      description="Choose how song audio is generated. Gemini uses the prompt directly; MusicGPT keeps the lyrics-first flow."
+                    >
+                      <SelectField
+                        value={normalizedSongAudioConfig.enabled}
+                        onChange={(val: string) => updateNestedValue('song_audio_config', 'enabled', val)}
+                        options={[
+                          { label: 'MusicGPT', value: 'musicgpt' },
+                          { label: 'Google Gemini', value: 'gemini' },
+                        ]}
+                      />
+                    </SettingRow>
+
+                    <SettingRow label="Lyrics API Key" description="Used only for the MusicGPT lyrics generation step. Gemini song generation does not use this field.">
                       <InputField 
                         type="password"
                         fieldId="song_text_secret"
@@ -467,16 +526,41 @@ export default function ApiConfig() {
                         onChange={(val: string) => updateNestedValue('song_text_config', 'secret', val)}
                       />
                     </SettingRow>
-                    <SettingRow label="Audio API Key" description="API key used for song audio task generation.">
-                      <InputField
-                        type="password"
-                        fieldId="song_audio_secret"
-                        showKeys={showKeys}
-                        toggleKeyVisibility={toggleKeyVisibility}
-                        value={configs.song_audio_config?.secret}
-                        onChange={(val: string) => updateNestedValue('song_audio_config', 'secret', val)}
-                      />
-                    </SettingRow>
+
+                    {normalizedSongAudioConfig.enabled === 'musicgpt' && (
+                      <SettingRow label="MusicGPT Audio API Key" description="API key used for MusicGPT audio task generation.">
+                        <InputField
+                          type="password"
+                          fieldId="song_audio_musicgpt_secret"
+                          showKeys={showKeys}
+                          toggleKeyVisibility={toggleKeyVisibility}
+                          value={normalizedSongAudioConfig?.options?.musicgpt?.secret}
+                          onChange={(val: string) => updateNestedValue('song_audio_config', 'options.musicgpt.secret', val)}
+                        />
+                      </SettingRow>
+                    )}
+
+                    {normalizedSongAudioConfig.enabled === 'gemini' && (
+                      <>
+                        <SettingRow label="Gemini Song API Key" description="API key used for Gemini/Lyria music generation.">
+                          <InputField
+                            type="password"
+                            fieldId="song_audio_gemini_secret"
+                            showKeys={showKeys}
+                            toggleKeyVisibility={toggleKeyVisibility}
+                            value={normalizedSongAudioConfig?.options?.gemini?.secret}
+                            onChange={(val: string) => updateNestedValue('song_audio_config', 'options.gemini.secret', val)}
+                          />
+                        </SettingRow>
+                        <SettingRow label="Gemini Song Model" description="Model used for direct prompt-to-music generation.">
+                          <InputField
+                            placeholder="lyria-3-clip-preview"
+                            value={normalizedSongAudioConfig?.options?.gemini?.model}
+                            onChange={(val: string) => updateNestedValue('song_audio_config', 'options.gemini.model', val)}
+                          />
+                        </SettingRow>
+                      </>
+                    )}
                   </Section>
 
                   <Section title="Song Images (Gemini)">
