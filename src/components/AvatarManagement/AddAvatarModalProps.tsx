@@ -183,10 +183,8 @@ export default function AddAvatarModal<TSave = EditItem>({
       formData.append("title", title.trim());
       if (categoryName === "Character") {
         formData.append("description", description.trim());
-        formData.append("category", JSON.stringify({
-          name: category.trim(),
-          color: normalizeHexColor(categoryColor)
-        }));
+        formData.append("category.name", category.trim());
+        formData.append("category.color", normalizeHexColor(categoryColor));
       }
       if (image) {
         formData.append("icon", image);
