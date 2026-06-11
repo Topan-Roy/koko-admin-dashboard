@@ -1,6 +1,6 @@
 import { Plus, Trash2, Pencil } from "lucide-react";
 import Pagination from "../ui/Pagination";
-import AddAvatarModal, { EditItem } from "./AddAvatarModalProps";
+import AddAvatarModal, { type EditItem } from "./AddAvatarModalProps";
 import { useState, useEffect } from "react";
 import api from "@/Context/api";
 import { toast } from "react-toastify";
@@ -18,7 +18,9 @@ interface Character {
 
 export default function Characters() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCharacter, setEditingCharacter] = useState<EditItem | null>(null);
+  const [editingCharacter, setEditingCharacter] = useState<EditItem | null>(
+    null,
+  );
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,7 +34,7 @@ export default function Characters() {
     try {
       const res = await api.get("/api/characters");
       const filtered = res.data.data.characters.filter(
-        (c: Character) => c.icon
+        (c: Character) => c.icon,
       );
       setCharacters(filtered);
     } catch (err) {
@@ -63,7 +65,7 @@ export default function Characters() {
     setIsModalOpen(false);
     setEditingCharacter(null);
   };
-  
+
   const handleDelete = async (id: string) => {
     try {
       await api.delete(`/api/characters/${id}`);
@@ -101,7 +103,7 @@ export default function Characters() {
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600"></div>
         </div>
       ) : (
-         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-0.5 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-0.5 mb-6">
           {currentItems.map((item) => (
             <div key={item._id} className="flex flex-col w-40 h-40 ">
               <div
@@ -183,4 +185,3 @@ export default function Characters() {
     </div>
   );
 }
-
