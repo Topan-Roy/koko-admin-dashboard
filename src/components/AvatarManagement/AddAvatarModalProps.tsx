@@ -34,8 +34,22 @@ interface AddAvatarModalProps<TSave = EditItem> {
 }
 
 const PRESET_SOLID_COLORS = [
-  "#7C3AED", "#EC4899", "#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#6366F1", "#14B8A6",
-  "#8B5CF6", "#F43F5E", "#0EA5E9", "#22C55E", "#EAB308", "#84CC16", "#A855F7", "#64748B",
+  "#7C3AED",
+  "#EC4899",
+  "#3B82F6",
+  "#10B981",
+  "#F59E0B",
+  "#EF4444",
+  "#6366F1",
+  "#14B8A6",
+  "#8B5CF6",
+  "#F43F5E",
+  "#0EA5E9",
+  "#22C55E",
+  "#EAB308",
+  "#84CC16",
+  "#A855F7",
+  "#64748B",
 ];
 
 const PRESET_GRADIENTS: { color1: string; color2: string }[] = [
@@ -84,7 +98,8 @@ export default function AddAvatarModal<TSave = EditItem>({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isEditMode = editItem != null;
-  const displayPreview = imagePreview ?? (isEditMode ? (editItem!.imageUrl || editItem!.icon) : null);
+  const displayPreview =
+    imagePreview ?? (isEditMode ? editItem!.imageUrl || editItem!.icon : null);
 
   useEffect(() => {
     if (isOpen && editItem) {
@@ -94,7 +109,7 @@ export default function AddAvatarModal<TSave = EditItem>({
       setCategoryColor(
         editItem.category?.color
           ? normalizeHexColor(editItem.category.color)
-          : "#7C3AED"
+          : "#7C3AED",
       );
       const c1 = editItem.colors?.[0];
       const c2 = editItem.colors?.[1];
@@ -149,11 +164,13 @@ export default function AddAvatarModal<TSave = EditItem>({
 
       if (avatarMode) {
         // Postman: colors = JSON array of hex codes. Solid = one color, gradient = two.
-        const hex1 = backgroundColor.startsWith("#") ? backgroundColor : `#${backgroundColor}`;
-        const hex2 = backgroundColor2.startsWith("#") ? backgroundColor2 : `#${backgroundColor2}`;
-        const colorsJson = JSON.stringify(
-          isGradient ? [hex1, hex2] : [hex1]
-        );
+        const hex1 = backgroundColor.startsWith("#")
+          ? backgroundColor
+          : `#${backgroundColor}`;
+        const hex2 = backgroundColor2.startsWith("#")
+          ? backgroundColor2
+          : `#${backgroundColor2}`;
+        const colorsJson = JSON.stringify(isGradient ? [hex1, hex2] : [hex1]);
         formData.append("colors", colorsJson);
         if (image) formData.append("image", image);
 
@@ -161,7 +178,7 @@ export default function AddAvatarModal<TSave = EditItem>({
           const response = await api.patch(
             `${apiEndpoint}/${editItem._id}`,
             formData,
-            { headers: { "Content-Type": "multipart/form-data" } }
+            { headers: { "Content-Type": "multipart/form-data" } },
           );
           if (onSave && response.data?.data) {
             onSave(response.data.data as TSave);
@@ -191,9 +208,7 @@ export default function AddAvatarModal<TSave = EditItem>({
       }
       const c1 = backgroundColor.replace("#", "");
       const c2 = backgroundColor2.replace("#", "");
-      const colors = isGradient
-        ? [c1, c2, c1]
-        : [c1, c1, c1];
+      const colors = isGradient ? [c1, c2, c1] : [c1, c1, c1];
       colors.forEach((color, index) => {
         formData.append(`colors[${index}]`, color);
       });
@@ -226,7 +241,10 @@ export default function AddAvatarModal<TSave = EditItem>({
     } catch (error: unknown) {
       console.error(`Error saving ${categoryName}:`, error);
       toast.error(
-        getErrorMessage(error, `Failed to save ${categoryName}. Please try again.`)
+        getErrorMessage(
+          error,
+          `Failed to save ${categoryName}. Please try again.`,
+        ),
       );
     } finally {
       setLoading(false);
@@ -249,7 +267,6 @@ export default function AddAvatarModal<TSave = EditItem>({
     setLoading(false);
     onClose();
   };
-
 
   if (!isOpen) return null;
 
@@ -318,14 +335,20 @@ export default function AddAvatarModal<TSave = EditItem>({
                       Category <span className="text-red-500">*</span>
                     </label>
                     <div className="flex gap-2">
-                      <input
-                        type="text"
+                      <select
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
-                        placeholder="e.g. Hero, Villain, etc."
-                        className="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-sm placeholder:text-gray-400"
+                        className="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-sm"
                         required
-                      />
+                      >
+                        <option value="">Select a category</option>
+                        <option value="Mischief Makers">Mischief Makers</option>
+                        <option value="Adventurers & Heroes">
+                          Adventurers & Heroes
+                        </option>
+                        <option value="Amazing Animals">Amazing Animals</option>
+                        <option value="Magical Friends">Magical Friends</option>
+                      </select>
                       <button
                         type="button"
                         onClick={() =>
@@ -364,7 +387,20 @@ export default function AddAvatarModal<TSave = EditItem>({
 
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1.5">
-              {avatarMode ? "Avatar Image" : `${categoryName} Icon`} {avatarMode ? (isEditMode ? "(optional)" : <><span className="text-red-500">*</span></>) : (isEditMode ? "(optional)" : <span className="text-red-500">*</span>)}
+              {avatarMode ? "Avatar Image" : `${categoryName} Icon`}{" "}
+              {avatarMode ? (
+                isEditMode ? (
+                  "(optional)"
+                ) : (
+                  <>
+                    <span className="text-red-500">*</span>
+                  </>
+                )
+              ) : isEditMode ? (
+                "(optional)"
+              ) : (
+                <span className="text-red-500">*</span>
+              )}
             </label>
             <input
               ref={fileInputRef}
@@ -388,7 +424,6 @@ export default function AddAvatarModal<TSave = EditItem>({
             </div>
           </div>
 
-
           <div>
             <div className="flex items-center justify-between mb-3">
               <label className="block text-xs font-medium text-gray-700">
@@ -406,9 +441,13 @@ export default function AddAvatarModal<TSave = EditItem>({
               </button>
             </div>
 
-            <p className="text-xs text-gray-500 mb-2">Quick pick — click to apply</p>
+            <p className="text-xs text-gray-500 mb-2">
+              Quick pick — click to apply
+            </p>
             <div className="mb-3">
-              <p className="text-[11px] font-medium text-gray-600 mb-1.5">Solid colors</p>
+              <p className="text-[11px] font-medium text-gray-600 mb-1.5">
+                Solid colors
+              </p>
               <div className="flex flex-wrap gap-1.5">
                 {PRESET_SOLID_COLORS.map((hex) => (
                   <button
@@ -427,7 +466,9 @@ export default function AddAvatarModal<TSave = EditItem>({
               </div>
             </div>
             <div className="mb-3">
-              <p className="text-[11px] font-medium text-gray-600 mb-1.5">Gradients</p>
+              <p className="text-[11px] font-medium text-gray-600 mb-1.5">
+                Gradients
+              </p>
               <div className="flex flex-wrap gap-2">
                 {PRESET_GRADIENTS.map((g, i) => (
                   <button
@@ -516,11 +557,11 @@ export default function AddAvatarModal<TSave = EditItem>({
             disabled={
               loading ||
               (avatarMode && !isEditMode && !image) ||
-              (!avatarMode && (
-                !title.trim() ||
-                (!isEditMode && !image) ||
-                (categoryName === "Character" && (!category.trim() || !description.trim()))
-              ))
+              (!avatarMode &&
+                (!title.trim() ||
+                  (!isEditMode && !image) ||
+                  (categoryName === "Character" &&
+                    (!category.trim() || !description.trim()))))
             }
             className="px-5 py-2 text-sm bg-gradient-to-r from-[#9458E8] via-[#A43EE7] to-[#CA00E5] text-white rounded-lg hover:opacity-90 transition-opacity font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
