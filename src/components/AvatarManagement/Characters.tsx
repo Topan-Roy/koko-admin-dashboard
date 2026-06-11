@@ -12,6 +12,7 @@ interface Character {
   colors: string[];
   description?: string;
   category?: string;
+  categoryColor?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -56,6 +57,9 @@ export default function Characters() {
       colors: character.colors,
       description: character.description,
       category: character.category,
+      categoryColor: character.categoryColor
+        ? normalizeColor(character.categoryColor)
+        : undefined,
     });
     setIsModalOpen(true);
   };
@@ -161,6 +165,21 @@ export default function Characters() {
               <p className="text-xs text-center text-[#4B5563] font-medium mt-1">
                 {item.title}
               </p>
+              {item.category && (
+                <div className="mt-0.5 flex items-center justify-center gap-1 text-[10px] font-medium text-gray-500">
+                  <span className="max-w-[88px] truncate">{item.category}</span>
+                  {item.categoryColor && (
+                    <>
+                      <span className="text-gray-300">|</span>
+                      <span
+                        className="h-3 w-3 shrink-0 rounded-full border border-gray-200"
+                        style={{ backgroundColor: normalizeColor(item.categoryColor) }}
+                        title={normalizeColor(item.categoryColor)}
+                      />
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>

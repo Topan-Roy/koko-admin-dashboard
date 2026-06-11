@@ -129,7 +129,9 @@ export default function StoryType() {
         onClose={() => setIsModalOpen(false)}
         apiEndpoint="/api/story-types"
         categoryName="Story Type"
-        onSave={(data) => setStoryTypes((prev) => [...prev, data])}
+        onSave={(data: StoryType) =>
+          setStoryTypes((prev) => [...prev, data])
+        }
       />
     </div>
   );

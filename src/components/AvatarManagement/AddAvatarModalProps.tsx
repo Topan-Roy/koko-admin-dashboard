@@ -12,14 +12,15 @@ export interface EditItem {
   colors: string[];
   description?: string;
   category?: string;
+  categoryColor?: string;
 }
 
-interface AddAvatarModalProps {
+interface AddAvatarModalProps<TSave = EditItem> {
   isOpen: boolean;
   onClose: () => void;
   apiEndpoint: string;
   categoryName?: string;
-  onSave?: (data: any) => void;
+  onSave?: (data: TSave) => void;
   /** Avatar API: send image + colors as JSON; no title. */
   avatarMode?: boolean;
   /** When set, PATCH existing item (optional image + colors + title/desc/cat). */
@@ -41,6 +42,19 @@ const PRESET_GRADIENTS: { color1: string; color2: string }[] = [
 ];
 
 const GRADIENT_PREVIEW_ANGLE = 135;
+
+const normalizeHexColor = (color: string) =>
+  color.startsWith("#") ? color : `#${color}`;
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (typeof error !== "object" || error === null || !("response" in error)) {
+    return fallback;
+  }
+
+  const response = (error as { response?: { data?: { message?: string } } })
+    .response;
+  return response?.data?.message || fallback;
+};
 
 function ColorPicker({
   onChange,
@@ -118,7 +132,7 @@ function ColorPicker({
   );
 }
 
-export default function AddAvatarModal({
+export default function AddAvatarModal<TSave = EditItem>({
   isOpen,
   onClose,
   apiEndpoint,
@@ -126,10 +140,11 @@ export default function AddAvatarModal({
   onSave,
   avatarMode = false,
   editItem = null,
-}: AddAvatarModalProps) {
+}: AddAvatarModalProps<TSave>) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
+  const [categoryColor, setCategoryColor] = useState("#7C3AED");
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [backgroundColor, setBackgroundColor] = useState("#7C3AED");
@@ -137,6 +152,7 @@ export default function AddAvatarModal({
   const [isGradient, setIsGradient] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showColorPicker2, setShowColorPicker2] = useState(false);
+  const [showCategoryColorPicker, setShowCategoryColorPicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -148,6 +164,11 @@ export default function AddAvatarModal({
       setTitle(editItem.title || "");
       setDescription(editItem.description || "");
       setCategory(editItem.category || "");
+      setCategoryColor(
+        editItem.categoryColor
+          ? normalizeHexColor(editItem.categoryColor)
+          : "#7C3AED"
+      );
       const c1 = editItem.colors?.[0];
       const c2 = editItem.colors?.[1];
       const hex1 = c1 ? (c1.startsWith("#") ? c1 : `#${c1}`) : "#7C3AED";
@@ -215,13 +236,17 @@ export default function AddAvatarModal({
             formData,
             { headers: { "Content-Type": "multipart/form-data" } }
           );
-          if (onSave && response.data?.data) onSave(response.data.data);
+          if (onSave && response.data?.data) {
+            onSave(response.data.data as TSave);
+          }
           toast.success("Avatar updated successfully!");
         } else {
           const response = await api.post(apiEndpoint, formData, {
             headers: { "Content-Type": "multipart/form-data" },
           });
-          if (onSave && response.data?.data) onSave(response.data.data);
+          if (onSave && response.data?.data) {
+            onSave(response.data.data as TSave);
+          }
           toast.success(`${categoryName} created successfully!`);
         }
         handleClose();
@@ -232,6 +257,7 @@ export default function AddAvatarModal({
       if (categoryName === "Character") {
         formData.append("description", description.trim());
         formData.append("category", category.trim());
+        formData.append("categoryColor", normalizeHexColor(categoryColor));
       }
       if (image) {
         formData.append("icon", image);
@@ -266,15 +292,14 @@ export default function AddAvatarModal({
           response.data.data.theme ||
           response.data.data.songType ||
           response.data.data;
-        onSave(newItem);
+        onSave(newItem as TSave);
       }
 
       handleClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error saving ${categoryName}:`, error);
       toast.error(
-        error.response?.data?.message ||
-          `Failed to save ${categoryName}. Please try again.`
+        getErrorMessage(error, `Failed to save ${categoryName}. Please try again.`)
       );
     } finally {
       setLoading(false);
@@ -285,6 +310,7 @@ export default function AddAvatarModal({
     setTitle("");
     setDescription("");
     setCategory("");
+    setCategoryColor("#7C3AED");
     setImage(null);
     setImagePreview(null);
     setBackgroundColor("#7C3AED");
@@ -292,6 +318,7 @@ export default function AddAvatarModal({
     setIsGradient(false);
     setShowColorPicker(false);
     setShowColorPicker2(false);
+    setShowCategoryColorPicker(false);
     setLoading(false);
     onClose();
   };
@@ -363,14 +390,33 @@ export default function AddAvatarModal({
                     <label className="block text-xs font-medium text-gray-700 mb-1.5">
                       Category <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      placeholder="e.g. Hero, Villain, etc."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-sm placeholder:text-gray-400"
-                      required
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        placeholder="e.g. Hero, Villain, etc."
+                        className="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-sm placeholder:text-gray-400"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowCategoryColorPicker(!showCategoryColorPicker)
+                        }
+                        className="h-9 w-11 shrink-0 rounded-lg border-2 border-gray-300 shadow-sm transition-all hover:scale-105 hover:border-purple-400"
+                        style={{ backgroundColor: categoryColor }}
+                        title={`Category color ${categoryColor}`}
+                      />
+                    </div>
+                    {showCategoryColorPicker && (
+                      <div className="mt-3">
+                        <ColorPicker
+                          color={categoryColor}
+                          onChange={setCategoryColor}
+                        />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1.5">
