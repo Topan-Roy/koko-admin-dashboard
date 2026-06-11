@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { X, Upload, CameraOff } from "lucide-react";
 import api from "@/Context/api";
 import { toast } from "react-toastify";
+import ColorPicker from "@/components/ui/ColorPicker";
+import { normalizeHexColor } from "@/lib/utils";
 
 /** For Avatar Management -> Avatars/Characters/etc: API expects image/icon + colors (JSON array of hex). */
 export interface EditItem {
@@ -43,9 +45,6 @@ const PRESET_GRADIENTS: { color1: string; color2: string }[] = [
 
 const GRADIENT_PREVIEW_ANGLE = 135;
 
-const normalizeHexColor = (color: string) =>
-  color.startsWith("#") ? color : `#${color}`;
-
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (typeof error !== "object" || error === null || !("response" in error)) {
     return fallback;
@@ -55,82 +54,6 @@ const getErrorMessage = (error: unknown, fallback: string) => {
     .response;
   return response?.data?.message || fallback;
 };
-
-function ColorPicker({
-  onChange,
-}: {
-  color: string;
-  onChange: (color: string) => void;
-}) {
-  const [hue, setHue] = useState(270);
-  const [saturation, setSaturation] = useState(70);
-  const [lightness, setLightness] = useState(55);
-  const gradientRef = useRef<HTMLDivElement>(null);
-
-  const hslToHex = (h: number, s: number, l: number) => {
-    l /= 100;
-    const a = (s * Math.min(l, 1 - l)) / 100;
-    const f = (n: number) => {
-      const k = (n + h / 30) % 12;
-      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-      return Math.round(255 * color)
-        .toString(16)
-        .padStart(2, "0");
-    };
-    return `#${f(0)}${f(8)}${f(4)}`;
-  };
-
-  const handleGradientClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!gradientRef.current) return;
-    const rect = gradientRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const newSaturation = (x / rect.width) * 100;
-    const newLightness = 100 - (y / rect.height) * 100;
-    setSaturation(newSaturation);
-    setLightness(newLightness);
-    onChange(hslToHex(hue, newSaturation, newLightness));
-  };
-
-  const handleHueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newHue = parseInt(e.target.value);
-    setHue(newHue);
-    onChange(hslToHex(newHue, saturation, lightness));
-  };
-
-  return (
-    <div className="space-y-3">
-      <div
-        ref={gradientRef}
-        onClick={handleGradientClick}
-        className="w-full h-48 rounded-lg cursor-crosshair relative"
-        style={{
-          background: `linear-gradient(to bottom, transparent, black), linear-gradient(to right, white, hsl(${hue}, 100%, 50%))`,
-        }}
-      >
-        <div
-          className="absolute w-5 h-5 border-2 border-white rounded-full shadow-lg -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          style={{
-            left: `${saturation}%`,
-            top: `${100 - lightness}%`,
-          }}
-        />
-      </div>
-      <input
-        type="range"
-        min="0"
-        max="360"
-        value={hue}
-        onChange={handleHueChange}
-        className="w-full h-3 rounded-lg cursor-pointer appearance-none"
-        style={{
-          background:
-            "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
-        }}
-      />
-    </div>
-  );
-}
 
 export default function AddAvatarModal<TSave = EditItem>({
   isOpen,
