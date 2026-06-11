@@ -1,6 +1,6 @@
-import { Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import Pagination from "../ui/Pagination";
-import AddAvatarModal from "./AddAvatarModalProps";
+import AddAvatarModal, { type EditItem } from "./AddAvatarModalProps";
 import { useState, useEffect } from "react";
 import api from "@/Context/api";
 import { toast } from "react-toastify";
@@ -14,27 +14,27 @@ interface StoryType {
 }
 export default function StoryType() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingStoryType, setEditingStoryType] = useState<EditItem | null>(null);
   const [storyTypes, setStoryTypes] = useState<StoryType[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+  const fetchStoryTypes = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/api/admin/story-types");
+      const filtered = res.data.data.storyTypes.filter(
+        (item: StoryType) => item.icon,
+      );
+      setStoryTypes(filtered);
+    } catch (err) {
+      console.error("Failed to fetch story types", err);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchSongTypes = async () => {
-      setLoading(true);
-      try {
-        const res = await api.get("/api/admin/story-types");
-        const filtered = res.data.data.storyTypes.filter(
-          (item: StoryType) => item.icon
-        );
-        setStoryTypes(filtered);
-      } catch (err) {
-        console.error("Failed to fetch story types", err);
-        // toast.error("Failed to fetch story types"); // Error alert removed
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSongTypes();
+    fetchStoryTypes();
   }, []);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -49,6 +49,20 @@ export default function StoryType() {
       toast.error("Failed to delete item");
     }
   };
+  const handleSave = async () => {
+    await fetchStoryTypes();
+    setIsModalOpen(false);
+    setEditingStoryType(null);
+  };
+  const handleEdit = (storyType: StoryType) => {
+    setEditingStoryType({
+      _id: storyType._id,
+      title: storyType.title,
+      icon: storyType.icon || undefined,
+      colors: storyType.colors,
+    });
+    setIsModalOpen(true);
+  };
   const normalizeColor = (color: string) => {
     if (!color) return "#f3f3f3";
     return color.startsWith("#") ? color : `#${color}`;
@@ -61,7 +75,10 @@ export default function StoryType() {
         </h2>
         <button
           className="flex cursor-pointer items-center gap-2 bg-gradient-to-r from-[#9458E8] via-[#A43EE7] to-[#CA00E5] text-white px-4 py-2 rounded-lg text-sm font-medium"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditingStoryType(null);
+            setIsModalOpen(true);
+          }}
         >
           <Plus size={18} />
           Add Story Type
@@ -89,6 +106,13 @@ export default function StoryType() {
                     : "#f3f3f3",
                 }}
               >
+                <button
+                  onClick={() => handleEdit(item)}
+                  className="absolute top-2 left-2 z-10 w-8 h-8 rounded-full bg-white/70 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-purple-50 hover:scale-110 shadow-sm"
+                  title="Edit"
+                >
+                  <Pencil size={14} className="text-purple-600" />
+                </button>
                 <button
                   onClick={() => handleDelete(item._id)}
                   className="
@@ -126,12 +150,14 @@ export default function StoryType() {
       />
       <AddAvatarModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingStoryType(null);
+        }}
         apiEndpoint="/api/story-types"
         categoryName="Story Type"
-        onSave={(data: StoryType) =>
-          setStoryTypes((prev) => [...prev, data])
-        }
+        onSave={handleSave}
+        editItem={editingStoryType}
       />
     </div>
   );

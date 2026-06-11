@@ -1,6 +1,6 @@
-import { Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import Pagination from "../ui/Pagination";
-import AddAvatarModal from "./AddAvatarModalProps";
+import AddAvatarModal, { type EditItem } from "./AddAvatarModalProps";
 import { useState, useEffect } from "react";
 import api from "@/Context/api";
 import { toast } from "react-toastify";
@@ -16,6 +16,7 @@ interface Item {
 
 export default function Items() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<EditItem | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,6 +45,17 @@ export default function Items() {
   const handleSaveItem = async () => {
     await fetchItems();
     setIsModalOpen(false);
+    setEditingItem(null);
+  };
+
+  const handleEdit = (item: Item) => {
+    setEditingItem({
+      _id: item._id,
+      title: item.title,
+      icon: item.icon || undefined,
+      colors: item.colors,
+    });
+    setIsModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -67,7 +79,10 @@ export default function Items() {
         <h2 className="text-lg font-semibold text-[#4B5563]">Items Avatars</h2>
         <button
           className="flex cursor-pointer items-center gap-2 bg-gradient-to-r from-[#9458E8] via-[#A43EE7] to-[#CA00E5] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditingItem(null);
+            setIsModalOpen(true);
+          }}
         >
           <Plus size={18} />
           Add Item
@@ -96,6 +111,13 @@ export default function Items() {
                     : "#f3f3f3",
                 }}
               >
+                <button
+                  onClick={() => handleEdit(item)}
+                  className="absolute top-2 left-2 z-10 w-8 h-8 rounded-full bg-white/70 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-purple-50 hover:scale-110 shadow-sm"
+                  title="Edit"
+                >
+                  <Pencil size={14} className="text-purple-600" />
+                </button>
                 <button
                   onClick={() => handleDelete(item._id)}
                   className="
@@ -135,10 +157,14 @@ export default function Items() {
 
       <AddAvatarModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingItem(null);
+        }}
         apiEndpoint="/api/items"
-        categoryName="Items"
+        categoryName="Item"
         onSave={handleSaveItem}
+        editItem={editingItem}
       />
     </div>
   );

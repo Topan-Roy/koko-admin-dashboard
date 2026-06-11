@@ -1,6 +1,6 @@
-import { Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import Pagination from "../ui/Pagination";
-import AddAvatarModal from "./AddAvatarModalProps";
+import AddAvatarModal, { type EditItem } from "./AddAvatarModalProps";
 import { useState, useEffect } from "react";
 import api from "@/Context/api";
 import { toast } from "react-toastify";
@@ -14,6 +14,7 @@ interface Place {
 }
 export default function Places() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPlace, setEditingPlace] = useState<EditItem | null>(null);
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,6 +39,16 @@ export default function Places() {
   const handleSavePlace = async () => {
     await fetchPlaces();
     setIsModalOpen(false);
+    setEditingPlace(null);
+  };
+  const handleEdit = (place: Place) => {
+    setEditingPlace({
+      _id: place._id,
+      title: place.title,
+      icon: place.icon || undefined,
+      colors: place.colors,
+    });
+    setIsModalOpen(true);
   };
   const handleDelete = async (id: string) => {
     try {
@@ -58,7 +69,10 @@ export default function Places() {
         <h2 className="text-lg font-semibold text-[#4B5563]">Places Avatars</h2>
         <button
           className="flex cursor-pointer items-center gap-2 bg-gradient-to-r from-[#9458E8] via-[#A43EE7] to-[#CA00E5] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditingPlace(null);
+            setIsModalOpen(true);
+          }}
         >
           <Plus size={18} />
           Add Place
@@ -86,6 +100,13 @@ export default function Places() {
                     : "#f3f3f3",
                 }}
               >
+                <button
+                  onClick={() => handleEdit(item)}
+                  className="absolute top-2 left-2 z-10 w-8 h-8 rounded-full bg-white/70 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-purple-50 hover:scale-110 shadow-sm"
+                  title="Edit"
+                >
+                  <Pencil size={14} className="text-purple-600" />
+                </button>
                 <button
                   onClick={() => handleDelete(item._id)}
                   className="
@@ -123,10 +144,14 @@ export default function Places() {
       />
       <AddAvatarModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingPlace(null);
+        }}
         apiEndpoint="/api/places"
         categoryName="Place"
         onSave={handleSavePlace}
+        editItem={editingPlace}
       />
     </div>
   );

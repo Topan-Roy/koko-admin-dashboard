@@ -1,6 +1,6 @@
-import { Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import Pagination from "../ui/Pagination";
-import AddAvatarModal from "./AddAvatarModalProps";
+import AddAvatarModal, { type EditItem } from "./AddAvatarModalProps";
 import { useState, useEffect } from "react";
 import api from "@/Context/api";
 import { toast } from "react-toastify";
@@ -14,6 +14,7 @@ interface SongType {
 }
 export default function SongType() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingSongType, setEditingSongType] = useState<EditItem | null>(null);
   const [songTypes, setSongTypes] = useState<SongType[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,10 +55,19 @@ export default function SongType() {
       toast.error("Failed to delete song type");
     }
   };
-  const handleSave = (newItem: SongType) => {
-    setSongTypes((prev) => [newItem, ...prev]);
+  const handleSave = async () => {
+    await fetchSongTypes();
     setIsModalOpen(false);
-    toast.success("Song type added successfully!");
+    setEditingSongType(null);
+  };
+  const handleEdit = (songType: SongType) => {
+    setEditingSongType({
+      _id: songType._id,
+      title: songType.title,
+      icon: songType.icon || undefined,
+      colors: songType.colors,
+    });
+    setIsModalOpen(true);
   };
   const normalizeColor = (color: string) => {
     if (!color) return "#f3f3f3";
@@ -71,7 +81,10 @@ export default function SongType() {
         </h2>
         <button
           className="flex items-center gap-2 bg-gradient-to-r from-[#9458E8] via-[#A43EE7] to-[#CA00E5] text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditingSongType(null);
+            setIsModalOpen(true);
+          }}
         >
           <Plus size={18} />
           Add Song Type
@@ -109,6 +122,13 @@ export default function SongType() {
                     : "#f3f3f3",
                 }}
               >
+                <button
+                  onClick={() => handleEdit(item)}
+                  className="absolute top-2 left-2 z-10 w-8 h-8 rounded-full bg-white/70 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-purple-50 hover:scale-110 shadow-sm"
+                  title="Edit"
+                >
+                  <Pencil size={14} className="text-purple-600" />
+                </button>
                 <button
                   onClick={() => handleDelete(item._id)}
                   className="
@@ -148,10 +168,14 @@ export default function SongType() {
       )}
       <AddAvatarModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingSongType(null);
+        }}
         apiEndpoint="/api/song-types"
         categoryName="Song Type"
         onSave={handleSave}
+        editItem={editingSongType}
       />
     </div>
   );
