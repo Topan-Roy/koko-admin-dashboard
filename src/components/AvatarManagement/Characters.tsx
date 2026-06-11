@@ -169,7 +169,7 @@ export default function Characters() {
                   <span className="max-w-[88px] truncate">
                     {item.category.name}
                   </span>
-                  {item.category.color && (
+                  {/* {item.category.color && (
                     <>
                       <span className="text-gray-300">|</span>
                       <span
@@ -178,7 +178,7 @@ export default function Characters() {
                         title={normalizeColor(item.category.color)}
                       />
                     </>
-                  )}
+                  )} */}
                 </div>
               )}
             </div>
