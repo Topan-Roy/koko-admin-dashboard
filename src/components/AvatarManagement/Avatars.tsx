@@ -149,7 +149,7 @@ export default function Avatars() {
         categoryName="Avatar"
         onSave={handleSaveAvatar}
         avatarMode
-        editAvatar={editingAvatar}
+        editItem={editingAvatar}
       />
     </div>
   );

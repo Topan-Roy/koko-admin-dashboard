@@ -3,11 +3,15 @@ import { X, Upload, CameraOff } from "lucide-react";
 import api from "@/Context/api";
 import { toast } from "react-toastify";
 
-/** For Avatar Management -> Avatars: API expects image + colors (JSON array of hex). */
-export interface EditAvatar {
+/** For Avatar Management -> Avatars/Characters/etc: API expects image/icon + colors (JSON array of hex). */
+export interface EditItem {
   _id: string;
-  imageUrl: string;
+  title?: string;
+  icon?: string;
+  imageUrl?: string;
   colors: string[];
+  description?: string;
+  category?: string;
 }
 
 interface AddAvatarModalProps {
@@ -18,8 +22,8 @@ interface AddAvatarModalProps {
   onSave?: (data: any) => void;
   /** Avatar API: send image + colors as JSON; no title. */
   avatarMode?: boolean;
-  /** When set, PATCH existing avatar (optional image + colors). */
-  editAvatar?: EditAvatar | null;
+  /** When set, PATCH existing item (optional image + colors + title/desc/cat). */
+  editItem?: EditItem | null;
 }
 
 const PRESET_SOLID_COLORS = [
@@ -121,9 +125,11 @@ export default function AddAvatarModal({
   categoryName = "Item",
   onSave,
   avatarMode = false,
-  editAvatar = null,
+  editItem = null,
 }: AddAvatarModalProps) {
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [backgroundColor, setBackgroundColor] = useState("#7C3AED");
@@ -134,13 +140,16 @@ export default function AddAvatarModal({
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isEditMode = avatarMode && editAvatar != null;
-  const displayPreview = imagePreview ?? (isEditMode ? editAvatar!.imageUrl : null);
+  const isEditMode = editItem != null;
+  const displayPreview = imagePreview ?? (isEditMode ? (editItem!.imageUrl || editItem!.icon) : null);
 
   useEffect(() => {
-    if (isOpen && editAvatar) {
-      const c1 = editAvatar.colors?.[0];
-      const c2 = editAvatar.colors?.[1];
+    if (isOpen && editItem) {
+      setTitle(editItem.title || "");
+      setDescription(editItem.description || "");
+      setCategory(editItem.category || "");
+      const c1 = editItem.colors?.[0];
+      const c2 = editItem.colors?.[1];
       const hex1 = c1 ? (c1.startsWith("#") ? c1 : `#${c1}`) : "#7C3AED";
       const hex2 = c2 ? (c2.startsWith("#") ? c2 : `#${c2}`) : "#EC4899";
       setBackgroundColor(hex1);
@@ -149,7 +158,7 @@ export default function AddAvatarModal({
       setImage(null);
       setImagePreview(null);
     }
-  }, [isOpen, editAvatar]);
+  }, [isOpen, editItem]);
 
   const gradientStyle = isGradient
     ? {
@@ -180,7 +189,7 @@ export default function AddAvatarModal({
         toast.error("Title is required");
         return;
       }
-      if (!image) {
+      if (!isEditMode && !image) {
         toast.error("Image is required");
         return;
       }
@@ -200,9 +209,9 @@ export default function AddAvatarModal({
         formData.append("colors", colorsJson);
         if (image) formData.append("image", image);
 
-        if (isEditMode && editAvatar) {
+        if (isEditMode && editItem) {
           const response = await api.patch(
-            `${apiEndpoint}/${editAvatar._id}`,
+            `${apiEndpoint}/${editItem._id}`,
             formData,
             { headers: { "Content-Type": "multipart/form-data" } }
           );
@@ -220,7 +229,13 @@ export default function AddAvatarModal({
       }
 
       formData.append("title", title.trim());
-      formData.append("icon", image!);
+      if (categoryName === "Character") {
+        formData.append("description", description.trim());
+        formData.append("category", category.trim());
+      }
+      if (image) {
+        formData.append("icon", image);
+      }
       const c1 = backgroundColor.replace("#", "");
       const c2 = backgroundColor2.replace("#", "");
       const colors = isGradient
@@ -230,9 +245,18 @@ export default function AddAvatarModal({
         formData.append(`colors[${index}]`, color);
       });
 
-      const response = await api.post(apiEndpoint, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      let response;
+      if (isEditMode && editItem) {
+        response = await api.patch(`${apiEndpoint}/${editItem._id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success(`${categoryName} updated successfully!`);
+      } else {
+        response = await api.post(apiEndpoint, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success(`${categoryName} created successfully!`);
+      }
 
       if (onSave && response.data?.data) {
         const newItem =
@@ -245,7 +269,6 @@ export default function AddAvatarModal({
         onSave(newItem);
       }
 
-      toast.success(`${categoryName} created successfully!`);
       handleClose();
     } catch (error: any) {
       console.error(`Error saving ${categoryName}:`, error);
@@ -260,6 +283,8 @@ export default function AddAvatarModal({
 
   const handleClose = () => {
     setTitle("");
+    setDescription("");
+    setCategory("");
     setImage(null);
     setImagePreview(null);
     setBackgroundColor("#7C3AED");
@@ -270,6 +295,7 @@ export default function AddAvatarModal({
     setLoading(false);
     onClose();
   };
+
 
   if (!isOpen) return null;
 
@@ -316,24 +342,56 @@ export default function AddAvatarModal({
           </div>
 
           {!avatarMode && (
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Title <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter title"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-sm placeholder:text-gray-400"
-                required
-              />
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                  Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter title"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-sm placeholder:text-gray-400"
+                  required
+                />
+              </div>
+
+              {categoryName === "Character" && (
+                <>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Category <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      placeholder="e.g. Hero, Villain, etc."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-sm placeholder:text-gray-400"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Description <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Enter character description"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-sm placeholder:text-gray-400 min-h-[80px]"
+                      required
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
 
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1.5">
-              Avatar Image {avatarMode ? (isEditMode ? "(optional)" : <><span className="text-red-500">*</span></>) : <span className="text-red-500">*</span>}
+              {avatarMode ? "Avatar Image" : `${categoryName} Icon`} {avatarMode ? (isEditMode ? "(optional)" : <><span className="text-red-500">*</span></>) : (isEditMode ? "(optional)" : <span className="text-red-500">*</span>)}
             </label>
             <input
               ref={fileInputRef}
@@ -356,6 +414,7 @@ export default function AddAvatarModal({
               </p>
             </div>
           </div>
+
 
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -481,7 +540,15 @@ export default function AddAvatarModal({
           </button>
           <button
             onClick={handleSave}
-            disabled={loading || (!avatarMode && (!title || !image)) || (avatarMode && !isEditMode && !image)}
+            disabled={
+              loading ||
+              (avatarMode && !isEditMode && !image) ||
+              (!avatarMode && (
+                !title.trim() ||
+                (!isEditMode && !image) ||
+                (categoryName === "Character" && (!category.trim() || !description.trim()))
+              ))
+            }
             className="px-5 py-2 text-sm bg-gradient-to-r from-[#9458E8] via-[#A43EE7] to-[#CA00E5] text-white rounded-lg hover:opacity-90 transition-opacity font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {loading ? (

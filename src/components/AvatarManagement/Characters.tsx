@@ -1,25 +1,32 @@
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import Pagination from "../ui/Pagination";
-import AddAvatarModal from "./AddAvatarModalProps";
+import AddAvatarModal, { EditItem } from "./AddAvatarModalProps";
 import { useState, useEffect } from "react";
 import api from "@/Context/api";
 import { toast } from "react-toastify";
+
 interface Character {
   _id: string;
   title: string;
   icon: string | null;
   colors: string[];
+  description?: string;
+  category?: string;
   createdAt: string;
   updatedAt: string;
 }
+
 export default function Characters() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCharacter, setEditingCharacter] = useState<EditItem | null>(null);
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+
   const normalizeColor = (color: string) =>
     color.startsWith("#") ? color : `#${color}`;
+
   const fetchCharacters = async () => {
     setLoading(true);
     try {
@@ -34,10 +41,28 @@ export default function Characters() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchCharacters();
   }, []);
 
+  const handleEdit = (character: Character) => {
+    setEditingCharacter({
+      _id: character._id,
+      title: character.title,
+      icon: character.icon || undefined,
+      colors: character.colors,
+      description: character.description,
+      category: character.category,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSave = () => {
+    fetchCharacters();
+    setIsModalOpen(false);
+    setEditingCharacter(null);
+  };
   
   const handleDelete = async (id: string) => {
     try {
@@ -49,9 +74,11 @@ export default function Characters() {
       toast.error("Failed to delete item");
     }
   };
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = characters.slice(indexOfFirstItem, indexOfLastItem);
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
@@ -60,7 +87,10 @@ export default function Characters() {
         </h2>
         <button
           className="flex cursor-pointer items-center gap-2 bg-gradient-to-r from-[#9458E8] via-[#A43EE7] to-[#CA00E5] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditingCharacter(null);
+            setIsModalOpen(true);
+          }}
         >
           <Plus size={18} />
           Add Character
@@ -88,6 +118,22 @@ export default function Characters() {
                     : "#f3f3f3",
                 }}
               >
+                <button
+                  onClick={() => handleEdit(item)}
+                  className="
+            absolute top-2 left-2 z-10
+            w-8 h-8 rounded-full
+            bg-white/70 backdrop-blur
+            flex items-center justify-center
+            opacity-0 group-hover:opacity-100
+            transition-all duration-200
+            hover:bg-purple-50 hover:scale-110
+            shadow-sm
+          "
+                  title="Edit"
+                >
+                  <Pencil size={14} className="text-purple-600" />
+                </button>
                 <button
                   onClick={() => handleDelete(item._id)}
                   className="
@@ -125,11 +171,16 @@ export default function Characters() {
       />
       <AddAvatarModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingCharacter(null);
+        }}
         apiEndpoint="/api/characters"
         categoryName="Character"
-        onSave={(data) => setCharacters((prev) => [...prev, data])}
+        onSave={handleSave}
+        editItem={editingCharacter}
       />
     </div>
   );
 }
+
