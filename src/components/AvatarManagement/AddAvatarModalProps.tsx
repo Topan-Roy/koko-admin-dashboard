@@ -6,6 +6,11 @@ import ColorPicker from "@/components/ui/ColorPicker";
 import { normalizeHexColor } from "@/lib/utils";
 
 /** For Avatar Management -> Avatars/Characters/etc: API expects image/icon + colors (JSON array of hex). */
+export interface CharacterCategory {
+  name?: string;
+  color?: string;
+}
+
 export interface EditItem {
   _id: string;
   title?: string;
@@ -13,8 +18,7 @@ export interface EditItem {
   imageUrl?: string;
   colors: string[];
   description?: string;
-  category?: string;
-  categoryColor?: string;
+  category?: CharacterCategory;
 }
 
 interface AddAvatarModalProps<TSave = EditItem> {
@@ -86,10 +90,10 @@ export default function AddAvatarModal<TSave = EditItem>({
     if (isOpen && editItem) {
       setTitle(editItem.title || "");
       setDescription(editItem.description || "");
-      setCategory(editItem.category || "");
+      setCategory(editItem.category?.name || "");
       setCategoryColor(
-        editItem.categoryColor
-          ? normalizeHexColor(editItem.categoryColor)
+        editItem.category?.color
+          ? normalizeHexColor(editItem.category.color)
           : "#7C3AED"
       );
       const c1 = editItem.colors?.[0];
@@ -179,8 +183,10 @@ export default function AddAvatarModal<TSave = EditItem>({
       formData.append("title", title.trim());
       if (categoryName === "Character") {
         formData.append("description", description.trim());
-        formData.append("category", category.trim());
-        formData.append("categoryColor", normalizeHexColor(categoryColor));
+        formData.append("category", JSON.stringify({
+          name: category.trim(),
+          color: normalizeHexColor(categoryColor)
+        }));
       }
       if (image) {
         formData.append("icon", image);
