@@ -10,6 +10,16 @@ import Items from "./Items";
 import Theme from "./Theme";
 import api from "@/Context/api";
 
+interface CharacterCountItem {
+  icon?: string | null;
+  characters?: CharacterCountItem[];
+}
+
+const countCharactersWithIcons = (items?: CharacterCountItem[]) =>
+  (items ?? [])
+    .flatMap((item) => item.characters ?? [item])
+    .filter((character) => character.icon).length;
+
 export default function AvatarManagement() {
   const [selectedCategory, setSelectedCategory] = useState("Avatars");
   const [categories, setCategories] = useState([
@@ -68,9 +78,7 @@ export default function AvatarManagement() {
         },
         {
           name: "Characters",
-          count:
-            charRes.data.data.characters?.filter((c: any) => c.icon).length ||
-            0,
+          count: countCharactersWithIcons(charRes.data.data.characters),
         },
         {
           name: "Places",
