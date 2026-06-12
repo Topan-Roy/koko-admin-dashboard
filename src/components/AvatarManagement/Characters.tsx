@@ -19,6 +19,11 @@ interface Character {
   updatedAt: string;
 }
 
+interface CharacterGroup {
+  category?: CharacterCategory;
+  characters: Character[];
+}
+
 export default function Characters() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCharacter, setEditingCharacter] = useState<EditItem | null>(
@@ -36,9 +41,17 @@ export default function Characters() {
     setLoading(true);
     try {
       const res = await api.get("/api/characters");
-      const filtered = res.data.data.characters.filter(
-        (c: Character) => c.icon,
+      const characterData: Array<Character | CharacterGroup> =
+        res.data?.data?.characters ?? [];
+      const flattened = characterData.flatMap((item) =>
+        "characters" in item
+          ? item.characters.map((character) => ({
+              ...character,
+              category: character.category ?? item.category,
+            }))
+          : [item],
       );
+      const filtered = flattened.filter((c: Character) => c.icon);
       setCharacters(filtered);
     } catch (err) {
       console.error("Failed to fetch characters", err);
