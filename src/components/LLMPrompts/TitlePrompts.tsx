@@ -5,7 +5,7 @@ import PromptTabs from "./PromptTabs";
 import api from "@/Context/api";
 import { toast } from "react-toastify";
 
-export type TitlePromptKey = "title" | "story_title" | "song_title";
+export type TitlePromptKey = "story_title" | "song_title";
 
 interface TitlePromptData {
   _id: string;
@@ -17,22 +17,19 @@ interface TitlePromptData {
 }
 
 interface TitlePromptsResponse {
-  title: TitlePromptData | null;
   story_title: TitlePromptData | null;
   song_title: TitlePromptData | null;
 }
 
 const TITLE_KEYS: { key: TitlePromptKey; label: string; description: string }[] = [
-  { key: "title", label: "Unified Title Prompt", description: "Used for both story and song titles when set. Supports (contentType)." },
-  { key: "story_title", label: "Story Title Prompt", description: "Fallback for story titles when unified prompt is not set." },
-  { key: "song_title", label: "Song Title Prompt", description: "Fallback for song titles when unified prompt is not set." },
+  { key: "story_title", label: "Story Title Prompt", description: "Used to generate story titles." },
+  { key: "song_title", label: "Song Title Prompt", description: "Used to generate song titles." },
 ];
 
 const PLACEHOLDERS = [
   { name: "(content)", desc: "Truncated story/song text (plain text)." },
   { name: "(childName)", desc: "Child's name for personalization." },
   { name: "(theme)", desc: "Theme (e.g. Adventure, Musical)." },
-  { name: "(contentType)", desc: '"story" or "song". Only for unified title prompt.' },
 ];
 
 export default function TitlePrompts() {
@@ -40,7 +37,6 @@ export default function TitlePrompts() {
   const [loading, setLoading] = useState(true);
   const [editingKey, setEditingKey] = useState<TitlePromptKey | null>(null);
   const [editedPrompts, setEditedPrompts] = useState<Record<TitlePromptKey, string>>({
-    title: "",
     story_title: "",
     song_title: "",
   });
@@ -52,7 +48,6 @@ export default function TitlePrompts() {
       const d = response.data?.data ?? response.data;
       setData(d);
       setEditedPrompts({
-        title: d?.title?.systemPrompt ?? "",
         story_title: d?.story_title?.systemPrompt ?? "",
         song_title: d?.song_title?.systemPrompt ?? "",
       });
@@ -86,7 +81,7 @@ export default function TitlePrompts() {
   };
 
   const handleCancelEdit = (key: TitlePromptKey) => {
-    const prompt = key === "title" ? data?.title : key === "story_title" ? data?.story_title : data?.song_title;
+    const prompt = key === "story_title" ? data?.story_title : data?.song_title;
     setEditedPrompts((prev) => ({ ...prev, [key]: prompt?.systemPrompt ?? "" }));
     setEditingKey(null);
   };
@@ -117,7 +112,7 @@ export default function TitlePrompts() {
             ) : (
               <div className="space-y-8">
                 {TITLE_KEYS.map(({ key, label, description }) => {
-                  const prompt = key === "title" ? data?.title : key === "story_title" ? data?.story_title : data?.song_title;
+                  const prompt = key === "story_title" ? data?.story_title : data?.song_title;
                   const isEditing = editingKey === key;
 
                   return (
