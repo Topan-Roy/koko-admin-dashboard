@@ -9,9 +9,11 @@ import TrComponentUpdate from "./components/TrComponentUpdate";
 import AddPackage from "./components/AddPackage";
 import api from "@/Context/api";
 import { toast } from "react-toastify";
+import type { AxiosError } from "axios";
 import type { TokenPackage } from "./types";
 
 type TabType = "one_time" | "subscription";
+type ApiErrorData = { message?: string };
 
 export default function CoinManagement() {
   const [packages, setPackages] = useState<TokenPackage[]>([]);
@@ -20,6 +22,9 @@ export default function CoinManagement() {
   const [showUpdate, setShowUpdate] = useState<boolean>(false);
   const [showAddPackage, setShowAddPackage] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<TabType>("one_time");
+  const [updatingStatusIds, setUpdatingStatusIds] = useState<Set<string>>(
+    () => new Set()
+  );
 
   useEffect(() => {
     fetchPackages();
@@ -53,19 +58,77 @@ export default function CoinManagement() {
         toast.error("Delete did not succeed. Please try again.");
         fetchPackages();
       }
-    } catch (err: any) {
-      const status = err.response?.status;
-      const data = err.response?.data;
-      const message = data?.message ?? err.message ?? "Failed to delete package";
+    } catch (err: unknown) {
+      const error = err as AxiosError<ApiErrorData>;
+      const status = error.response?.status;
+      const data = error.response?.data;
+      const message = data?.message ?? error.message ?? "Failed to delete package";
       console.error("[CoinManagement] DELETE /api/token-packages failed:", { status, id: pkg._id, responseData: data });
       toast.error(message);
       fetchPackages(); // Refresh list so user sees package is still there (e.g. 404/403).
     }
   };
 
+  const handleStatusChange = async (pkg: TokenPackage) => {
+    if (updatingStatusIds.has(pkg._id)) return;
+
+    const wasActive = pkg.is_active !== false;
+    const nextIsActive = !wasActive;
+
+    setUpdatingStatusIds((current) => new Set(current).add(pkg._id));
+    setPackages((current) =>
+      current.map((item) =>
+        item._id === pkg._id ? { ...item, is_active: nextIsActive } : item
+      )
+    );
+
+    try {
+      const res = await api.patch(`/api/token-packages/${pkg._id}`, {
+        is_active: nextIsActive,
+      });
+      const updatedPackage = res.data?.data?.package ?? res.data?.package;
+
+      if (updatedPackage) {
+        setPackages((current) =>
+          current.map((item) =>
+            item._id === pkg._id ? { ...item, ...updatedPackage } : item
+          )
+        );
+      }
+
+      toast.success(
+        nextIsActive
+          ? `"${pkg.name}" is now available to customers.`
+          : `"${pkg.name}" is now hidden from customers.`
+      );
+    } catch (err: unknown) {
+      const error = err as AxiosError<ApiErrorData>;
+      setPackages((current) =>
+        current.map((item) =>
+          item._id === pkg._id ? { ...item, is_active: wasActive } : item
+        )
+      );
+      toast.error(
+        error.response?.data?.message || "Failed to update package availability"
+      );
+    } finally {
+      setUpdatingStatusIds((current) => {
+        const next = new Set(current);
+        next.delete(pkg._id);
+        return next;
+      });
+    }
+  };
+
   const oneTimePackages = packages.filter((p) => p.type === "one_time");
   const subscriptionPackages = packages.filter((p) => p.type === "subscription");
   const displayedPackages = activeTab === "one_time" ? oneTimePackages : subscriptionPackages;
+  const oneTimeActiveCount = oneTimePackages.filter(
+    (pkg) => pkg.is_active !== false
+  ).length;
+  const subscriptionActiveCount = subscriptionPackages.filter(
+    (pkg) => pkg.is_active !== false
+  ).length;
   return (
     <section className="flex items-start justify-center bg-[#F9F9F9] relative min-h-screen">
       <SideBar />
@@ -158,6 +221,9 @@ export default function CoinManagement() {
                 }`}
               >
                 One-off (Purchase)
+                <span className="ml-2 rounded-full bg-[#F3E8FF] px-2 py-0.5 text-[10px] text-[#7E22CE]">
+                  {oneTimeActiveCount}/{oneTimePackages.length} available
+                </span>
               </button>
               <button
                 type="button"
@@ -169,9 +235,15 @@ export default function CoinManagement() {
                 }`}
               >
                 Subscription (Subscribe)
+                <span className="ml-2 rounded-full bg-[#F3E8FF] px-2 py-0.5 text-[10px] text-[#7E22CE]">
+                  {subscriptionActiveCount}/{subscriptionPackages.length} available
+                </span>
               </button>
             </div>
           </div>
+          <p className="mb-4 text-[12px] leading-5 text-[#6B7280]">
+            Hidden plans are removed from customer purchase and subscription choices.
+          </p>
           <div className="bg-white px-[24px] rounded-[8px] overflow-hidden">
             {loading ? (
               <div className="flex items-center justify-center py-20">
@@ -209,6 +281,9 @@ export default function CoinManagement() {
                       Sort
                     </th>
                     <th className="p-[10px] border-b-[0.5px] border-[#EBEBEB] font-semibold text-[14px] leading-[20px] text-[#333333] text-left">
+                      Status
+                    </th>
+                    <th className="p-[10px] border-b-[0.5px] border-[#EBEBEB] font-semibold text-[14px] leading-[20px] text-[#333333] text-left">
                       Actions
                     </th>
                   </tr>
@@ -240,6 +315,49 @@ export default function CoinManagement() {
                       </td>
                       <td className="p-[10px] border-b-[0.3px] border-[#EBEBEB] text-[14px] leading-[20px] text-[#333333]">
                         {pkg.sort_order}
+                      </td>
+                      <td className="p-[10px] border-b-[0.3px] border-[#EBEBEB] text-[14px] leading-[20px]">
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={pkg.is_active !== false}
+                            aria-label={`${
+                              pkg.is_active !== false ? "Hide" : "Show"
+                            } ${pkg.name} for customers`}
+                            title={`${
+                              pkg.is_active !== false ? "Hide" : "Show"
+                            } this package for customers`}
+                            disabled={updatingStatusIds.has(pkg._id)}
+                            onClick={() => handleStatusChange(pkg)}
+                            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#9458E8] focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60 ${
+                              pkg.is_active !== false
+                                ? "bg-[#22C55E]"
+                                : "bg-[#D1D5DB]"
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+                                pkg.is_active !== false
+                                  ? "translate-x-[22px]"
+                                  : "translate-x-0.5"
+                              }`}
+                            />
+                          </button>
+                          <span
+                            className={`min-w-[58px] text-[12px] font-medium ${
+                              pkg.is_active !== false
+                                ? "text-[#15803D]"
+                                : "text-[#6B7280]"
+                            }`}
+                          >
+                            {updatingStatusIds.has(pkg._id)
+                              ? "Saving..."
+                              : pkg.is_active !== false
+                                ? "Available"
+                                : "Hidden"}
+                          </span>
+                        </div>
                       </td>
                       <td className="p-[10px] border-b-[0.3px] border-[#EBEBEB] text-[14px] leading-[20px]">
                         <div className="flex items-center justify-start gap-4">
