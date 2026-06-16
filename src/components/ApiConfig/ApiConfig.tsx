@@ -249,6 +249,20 @@ export default function ApiConfig() {
             ),
             voice: strOrFallback(tts?.options?.mistral?.voice, "jane curious"),
           },
+          elevenlabs: {
+            secret: strOrFallback(
+              tts?.options?.elevenlabs?.secret,
+              "__unused__",
+            ),
+            model: strOrFallback(
+              tts?.options?.elevenlabs?.model,
+              "eleven_multilingual_v2",
+            ),
+            voice: strOrFallback(
+              tts?.options?.elevenlabs?.voice,
+              "21m00Tcm4TlvDq8ikWAM",
+            ),
+          },
         },
       };
     }
@@ -496,6 +510,7 @@ export default function ApiConfig() {
                           { label: "Google Gemini", value: "gemini" },
                           { label: "Mistral AI", value: "mistral" },
                           { label: "OpenAI", value: "openai" },
+                          { label: "ElevenLabs", value: "elevenlabs" },
                         ]}
                       />
                     </SettingRow>
@@ -639,6 +654,62 @@ export default function ApiConfig() {
                                 updateNestedValue(
                                   "story_tts_config",
                                   "options.openai.voice",
+                                  val,
+                                )
+                              }
+                            />
+                          </div>
+                        </SettingRow>
+                      </>
+                    )}
+
+                    {configs.story_tts_config?.enabled === "elevenlabs" && (
+                      <>
+                        <SettingRow label="ElevenLabs API Key">
+                          <InputField
+                            type="password"
+                            fieldId="story_tts_elevenlabs_secret"
+                            showKeys={showKeys}
+                            toggleKeyVisibility={toggleKeyVisibility}
+                            value={
+                              configs.story_tts_config?.options?.elevenlabs
+                                ?.secret
+                            }
+                            onChange={(val: string) =>
+                              updateNestedValue(
+                                "story_tts_config",
+                                "options.elevenlabs.secret",
+                                val,
+                              )
+                            }
+                          />
+                        </SettingRow>
+                        <SettingRow label="ElevenLabs Model and Voice">
+                          <div className="grid grid-cols-2 gap-3">
+                            <InputField
+                              placeholder="eleven_multilingual_v2"
+                              value={
+                                configs.story_tts_config?.options?.elevenlabs
+                                  ?.model
+                              }
+                              onChange={(val: string) =>
+                                updateNestedValue(
+                                  "story_tts_config",
+                                  "options.elevenlabs.model",
+                                  val,
+                                )
+                              }
+                            />
+                            <InputField
+                              placeholder="21m00Tcm4TlvDq8ikWAM"
+                              value={
+                                configs.story_tts_config?.options?.elevenlabs
+                                  ?.voice
+                              }
+                              onChange={(val: string) =>
+                                updateNestedValue(
+                                  "story_tts_config",
+                                  "options.elevenlabs.voice",
                                   val,
                                 )
                               }
