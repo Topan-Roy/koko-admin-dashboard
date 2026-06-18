@@ -45,6 +45,9 @@ const InputField = ({
   fieldId = "",
   showKeys = {},
   toggleKeyVisibility = () => {},
+  min,
+  max,
+  step,
 }: any) => {
   const isPassword = type === "password";
   const isVisible = showKeys[fieldId];
@@ -69,6 +72,9 @@ const InputField = ({
           }
         }}
         placeholder={placeholder}
+        min={min}
+        max={max}
+        step={step}
         className="w-full p-2.5 px-3.5 pr-10 rounded-lg border border-gray-200 outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all text-[14px] bg-white text-gray-800 font-medium hover:border-gray-300 placeholder:text-gray-400 placeholder:font-normal shadow-sm"
       />
       {isPassword && (
@@ -188,7 +194,6 @@ export default function ApiConfig() {
     const strOrFallback = (v: any, fallback: string) =>
       typeof v === "string" && v.trim().length > 0 ? v : fallback;
     const out: Record<string, any> = {};
-
     if (safe.story_text_config) out.story_text_config = safe.story_text_config;
     if (safe.story_image_config)
       out.story_image_config = safe.story_image_config;
@@ -222,6 +227,8 @@ export default function ApiConfig() {
     if (safe.api_usage_pricing) out.api_usage_pricing = safe.api_usage_pricing;
 
     const tts = safe.story_tts_config;
+    const elevenLabsSpeed = tts?.options?.elevenlabs?.speed;
+    const elevenLabsSpeedNumber = Number(elevenLabsSpeed);
     if (tts) {
       out.story_tts_config = {
         enabled: strOrFallback(tts?.enabled, "gemini"),
@@ -262,6 +269,13 @@ export default function ApiConfig() {
               tts?.options?.elevenlabs?.voice,
               "21m00Tcm4TlvDq8ikWAM",
             ),
+            speed:
+              String(elevenLabsSpeed ?? "").trim() !== "" &&
+              Number.isFinite(elevenLabsSpeedNumber) &&
+              elevenLabsSpeedNumber >= 0.7 &&
+              elevenLabsSpeedNumber <= 1.2
+                ? elevenLabsSpeedNumber
+                : 1,
           },
         },
       };
@@ -684,8 +698,8 @@ export default function ApiConfig() {
                             }
                           />
                         </SettingRow>
-                        <SettingRow label="ElevenLabs Model and Voice">
-                          <div className="grid grid-cols-2 gap-3">
+                        <SettingRow label="ElevenLabs Model, Voice, and Speed">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <InputField
                               placeholder="eleven_multilingual_v2"
                               value={
@@ -710,6 +724,24 @@ export default function ApiConfig() {
                                 updateNestedValue(
                                   "story_tts_config",
                                   "options.elevenlabs.voice",
+                                  val,
+                                )
+                              }
+                            />
+                            <InputField
+                              type="number"
+                              placeholder="1.0"
+                              min="0.7"
+                              max="1.2"
+                              step="0.05"
+                              value={
+                                configs.story_tts_config?.options?.elevenlabs
+                                  ?.speed ?? 1
+                              }
+                              onChange={(val: string) =>
+                                updateNestedValue(
+                                  "story_tts_config",
+                                  "options.elevenlabs.speed",
                                   val,
                                 )
                               }
