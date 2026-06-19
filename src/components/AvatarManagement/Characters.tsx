@@ -1,9 +1,6 @@
 import { Plus, Trash2, Pencil } from "lucide-react";
 import Pagination from "../ui/Pagination";
-import AddAvatarModal, {
-  type CharacterCategory,
-  type EditItem,
-} from "./AddAvatarModalProps";
+import AddAvatarModal, { type EditItem } from "./AddAvatarModalProps";
 import { useState, useEffect } from "react";
 import api from "@/Context/api";
 import { toast } from "react-toastify";
@@ -14,13 +11,11 @@ interface Character {
   icon: string | null;
   colors: string[];
   description?: string;
-  category?: CharacterCategory;
   createdAt: string;
   updatedAt: string;
 }
 
 interface CharacterGroup {
-  category?: CharacterCategory;
   characters: Character[];
 }
 
@@ -44,12 +39,7 @@ export default function Characters() {
       const characterData: Array<Character | CharacterGroup> =
         res.data?.data?.characters ?? [];
       const flattened = characterData.flatMap((item) =>
-        "characters" in item
-          ? item.characters.map((character) => ({
-              ...character,
-              category: character.category ?? item.category,
-            }))
-          : [item],
+        "characters" in item ? item.characters : [item],
       );
       const filtered = flattened.filter((c: Character) => c.icon);
       setCharacters(filtered);
@@ -71,7 +61,6 @@ export default function Characters() {
       icon: character.icon || undefined,
       colors: character.colors,
       description: character.description,
-      category: character.category,
     });
     setIsModalOpen(true);
   };
@@ -177,23 +166,6 @@ export default function Characters() {
               <p className="text-xs text-center text-[#4B5563] font-medium mt-1">
                 {item.title}
               </p>
-              {item.category?.name && (
-                <div className="mt-0.5 flex items-center justify-center gap-1 text-[10px] font-medium text-gray-500">
-                  <span className="max-w-[88px] truncate">
-                    {item.category.name}
-                  </span>
-                  {/* {item.category.color && (
-                    <>
-                      <span className="text-gray-300">|</span>
-                      <span
-                        className="h-3 w-3 shrink-0 rounded-full border border-gray-200"
-                        style={{ backgroundColor: normalizeColor(item.category.color) }}
-                        title={normalizeColor(item.category.color)}
-                      />
-                    </>
-                  )} */}
-                </div>
-              )}
             </div>
           ))}
         </div>

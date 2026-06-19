@@ -3,14 +3,8 @@ import { X, Upload, CameraOff } from "lucide-react";
 import api from "@/Context/api";
 import { toast } from "react-toastify";
 import ColorPicker from "@/components/ui/ColorPicker";
-import { normalizeHexColor } from "@/lib/utils";
 
 /** For Avatar Management -> Avatars/Characters/etc: API expects image/icon + colors (JSON array of hex). */
-export interface CharacterCategory {
-  name?: string;
-  color?: string;
-}
-
 export interface EditItem {
   _id: string;
   title?: string;
@@ -18,7 +12,6 @@ export interface EditItem {
   imageUrl?: string;
   colors: string[];
   description?: string;
-  category?: CharacterCategory;
 }
 
 interface AddAvatarModalProps<TSave = EditItem> {
@@ -84,8 +77,6 @@ export default function AddAvatarModal<TSave = EditItem>({
 }: AddAvatarModalProps<TSave>) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [categoryColor, setCategoryColor] = useState("#7C3AED");
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [backgroundColor, setBackgroundColor] = useState("#7C3AED");
@@ -93,7 +84,6 @@ export default function AddAvatarModal<TSave = EditItem>({
   const [isGradient, setIsGradient] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showColorPicker2, setShowColorPicker2] = useState(false);
-  const [showCategoryColorPicker, setShowCategoryColorPicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -105,12 +95,6 @@ export default function AddAvatarModal<TSave = EditItem>({
     if (isOpen && editItem) {
       setTitle(editItem.title || "");
       setDescription(editItem.description || "");
-      setCategory(editItem.category?.name || "");
-      setCategoryColor(
-        editItem.category?.color
-          ? normalizeHexColor(editItem.category.color)
-          : "#7C3AED",
-      );
       const c1 = editItem.colors?.[0];
       const c2 = editItem.colors?.[1];
       const hex1 = c1 ? (c1.startsWith("#") ? c1 : `#${c1}`) : "#7C3AED";
@@ -200,8 +184,6 @@ export default function AddAvatarModal<TSave = EditItem>({
       formData.append("title", title.trim());
       if (categoryName === "Character") {
         formData.append("description", description.trim());
-        formData.append("category.name", category.trim());
-        formData.append("category.color", normalizeHexColor(categoryColor));
       }
       if (image) {
         formData.append("icon", image);
@@ -254,8 +236,6 @@ export default function AddAvatarModal<TSave = EditItem>({
   const handleClose = () => {
     setTitle("");
     setDescription("");
-    setCategory("");
-    setCategoryColor("#7C3AED");
     setImage(null);
     setImagePreview(null);
     setBackgroundColor("#7C3AED");
@@ -263,7 +243,6 @@ export default function AddAvatarModal<TSave = EditItem>({
     setIsGradient(false);
     setShowColorPicker(false);
     setShowColorPicker2(false);
-    setShowCategoryColorPicker(false);
     setLoading(false);
     onClose();
   };
@@ -329,58 +308,18 @@ export default function AddAvatarModal<TSave = EditItem>({
               </div>
 
               {categoryName === "Character" && (
-                <>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                      Category <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex gap-2">
-                      <select
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
-                        className="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-sm"
-                        required
-                      >
-                        <option value="">Select a category</option>
-                        <option value="Mischief Makers">Mischief Makers</option>
-                        <option value="Adventurers & Heroes">
-                          Adventurers & Heroes
-                        </option>
-                        <option value="Amazing Animals">Amazing Animals</option>
-                        <option value="Magical Friends">Magical Friends</option>
-                      </select>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowCategoryColorPicker(!showCategoryColorPicker)
-                        }
-                        className="h-9 w-11 shrink-0 rounded-lg border-2 border-gray-300 shadow-sm transition-all hover:scale-105 hover:border-purple-400"
-                        style={{ backgroundColor: categoryColor }}
-                        title={`Category color ${categoryColor}`}
-                      />
-                    </div>
-                    {showCategoryColorPicker && (
-                      <div className="mt-3">
-                        <ColorPicker
-                          color={categoryColor}
-                          onChange={setCategoryColor}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                      Description <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Enter character description"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-sm placeholder:text-gray-400 min-h-[80px]"
-                      required
-                    />
-                  </div>
-                </>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Description <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Enter character description"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-sm placeholder:text-gray-400 min-h-[80px]"
+                    required
+                  />
+                </div>
               )}
             </div>
           )}
@@ -560,8 +499,7 @@ export default function AddAvatarModal<TSave = EditItem>({
               (!avatarMode &&
                 (!title.trim() ||
                   (!isEditMode && !image) ||
-                  (categoryName === "Character" &&
-                    (!category.trim() || !description.trim()))))
+                  (categoryName === "Character" && !description.trim())))
             }
             className="px-5 py-2 text-sm bg-gradient-to-r from-[#9458E8] via-[#A43EE7] to-[#CA00E5] text-white rounded-lg hover:opacity-90 transition-opacity font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
