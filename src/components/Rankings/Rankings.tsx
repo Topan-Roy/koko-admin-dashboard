@@ -180,6 +180,15 @@ const emptyCategory = (): PaginatedCategory => ({
 });
 
 export default function Rankings() {
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return d.toISOString().split("T")[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    return new Date().toISOString().split("T")[0];
+  });
+
   const [overviewData, setOverviewData] = useState<Record<TabKey, PaginatedCategory>>({
     characters: emptyCategory(),
     themes:     emptyCategory(),
@@ -204,12 +213,16 @@ export default function Rankings() {
   const overviewLoaded = useRef(false);
 
   // ── Fetch overview (page 1 of all tabs) — once on mount ──────────────────
-  const fetchOverview = async () => {
+  const fetchOverview = async (start = startDate, end = endDate) => {
     setLoadingOverview(true);
     setError(null);
     try {
       const res = await api.get("/api/admin/rankings", {
-        params: { limit: ITEMS_PER_PAGE },
+        params: { 
+          limit: ITEMS_PER_PAGE,
+          startDate: start || undefined,
+          endDate: end || undefined
+        },
       });
       const d = res.data.data;
       setOverviewData({
@@ -232,13 +245,19 @@ export default function Rankings() {
   };
 
   // ── Fetch a single tab at a specific page ─────────────────────────────────
-  const fetchTab = async (tab: TabKey, page: number) => {
+  const fetchTab = async (tab: TabKey, page: number, start = startDate, end = endDate) => {
     const tabMeta = TABS.find((t) => t.key === tab)!;
     setLoadingTab(true);
     setError(null);
     try {
       const res = await api.get("/api/admin/rankings", {
-        params: { category: tabMeta.apiCategory, page, limit: ITEMS_PER_PAGE },
+        params: { 
+          category: tabMeta.apiCategory, 
+          page, 
+          limit: ITEMS_PER_PAGE,
+          startDate: start || undefined,
+          endDate: end || undefined
+        },
       });
       const d = res.data.data;
       // The API returns e.g. { characters: { results, page, totalResults, totalPages } }
@@ -256,10 +275,12 @@ export default function Rankings() {
     }
   };
 
-  // ── On mount: fetch full overview ────────────────────────────────────────
+  // ── On mount and date change: fetch full overview ──────────────────────────
   useEffect(() => {
-    fetchOverview();
-  }, []);
+    setPages({ characters: 1, themes: 1, places: 1, items: 1, storyTypes: 1, songTypes: 1 });
+    overviewLoaded.current = false;
+    fetchOverview(startDate, endDate);
+  }, [startDate, endDate]);
 
   // ── When active tab changes: restore cached data or re-fetch ─────────────
   useEffect(() => {
@@ -269,7 +290,7 @@ export default function Rankings() {
       // Use overview cache for page 1
       setTabData(overviewData[activeTab]);
     } else {
-      fetchTab(activeTab, currentPage);
+      fetchTab(activeTab, currentPage, startDate, endDate);
     }
   }, [activeTab]);
 
@@ -279,19 +300,13 @@ export default function Rankings() {
     if (page === 1) {
       setTabData(overviewData[activeTab]);
     } else {
-      fetchTab(activeTab, page);
+      fetchTab(activeTab, page, startDate, endDate);
     }
   };
 
   const handleTabChange = (tab: TabKey) => {
     setActiveTab(tab);
     setError(null);
-  };
-
-  const handleRefresh = () => {
-    setPages({ characters: 1, themes: 1, places: 1, items: 1, storyTypes: 1, songTypes: 1 });
-    overviewLoaded.current = false;
-    fetchOverview();
   };
 
   const activeTabMeta = TABS.find((t) => t.key === activeTab)!;
@@ -318,17 +333,26 @@ export default function Rankings() {
               Most-used characters, themes and other story elements
             </p>
           </div>
-          <button
-            onClick={handleRefresh}
-            disabled={isLoading}
-            className="flex items-center gap-2 bg-gradient-to-r from-[#9458E8] via-[#A43EE7] to-[#CA00E5] text-white px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-90 hover:shadow-lg inter-font disabled:opacity-60"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className={isLoading ? "animate-spin" : ""}>
-              <path d="M1 4v6h6M23 20v-6h-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            {isLoading ? "Loading…" : "Refresh"}
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-600 inter-font">From:</span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="rounded-xl border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font bg-white shadow-sm"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-600 inter-font">To:</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="rounded-xl border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font bg-white shadow-sm"
+              />
+            </div>
+          </div>
         </div>
 
         {/* ── Overview cards ───────────────────────────────────────────── */}
@@ -424,7 +448,7 @@ export default function Rankings() {
                 </div>
                 <p className="text-[15px] font-semibold text-[#374151] inter-font">{error}</p>
                 <button
-                  onClick={handleRefresh}
+                  onClick={() => fetchOverview(startDate, endDate)}
                   className="mt-4 px-5 py-2 bg-gradient-to-r from-[#9458E8] to-[#CA00E5] text-white rounded-xl text-sm font-medium inter-font hover:opacity-90 transition-opacity"
                 >
                   Try Again
