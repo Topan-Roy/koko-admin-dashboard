@@ -12,7 +12,7 @@ import ExportButton from "../ui/ExportButton";
 type TransactionFilter =
   | "all"
   | "subscription"
-  | "coin_purchase"
+  | "one_time"
   | "succeeded"
   | "pending"
   | "failed"
@@ -49,7 +49,7 @@ const itemsPerPage = 20;
 const filterOptions: Array<{ label: string; value: TransactionFilter }> = [
   { label: "All Transactions", value: "all" },
   { label: "Subscription", value: "subscription" },
-  { label: "Coin Purchase", value: "coin_purchase" },
+  { label: "Coin Purchase", value: "one_time" },
   { label: "Succeeded", value: "succeeded" },
   { label: "Pending", value: "pending" },
   { label: "Failed", value: "failed" },
@@ -132,7 +132,7 @@ export default function TransactionHistory() {
       };
 
       if (selectedFilter !== "all") {
-        if (selectedFilter === "subscription" || selectedFilter === "coin_purchase") {
+        if (selectedFilter === "subscription" || selectedFilter === "one_time") {
           params.type = selectedFilter;
         } else {
           params.status = selectedFilter;
@@ -203,7 +203,7 @@ export default function TransactionHistory() {
         };
 
         if (selectedFilter !== "all") {
-          if (selectedFilter === "subscription" || selectedFilter === "coin_purchase") {
+          if (selectedFilter === "subscription" || selectedFilter === "one_time") {
             params.type = selectedFilter;
           } else {
             params.status = selectedFilter;
