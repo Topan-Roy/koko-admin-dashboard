@@ -1,7 +1,7 @@
 import React from 'react'
 import ProfileDetails from './ProfileDetails'
 
-export default function Profile({ userData }: { userData: any }) {
+export default function Profile({ userData, onRefresh }: { userData: any; onRefresh: () => void }) {
     if (!userData) return null;
     const [showProfileDetails, setShowProfileDetails] = React.useState<boolean>(false)
     const [selectedProfile, setSelectedProfile] = React.useState<any>(null)
@@ -30,13 +30,13 @@ export default function Profile({ userData }: { userData: any }) {
 
         return profiles.map((profile: any, index: number) => {
             const finalImageUrl = profile.imageUrl || profile.avatar?.imageUrl || (typeof profile.avatar === 'string' ? profile.avatar : null);
-            // console.log(`Profile ${index} - Final Image URL:`, finalImageUrl);
+            const isDeletedChild = profile.is_active === false;
 
             return (
                 <div key={index} onClick={() => {
                     setSelectedProfile(profile)
                     setShowProfileDetails(true)
-                }} className='bg-white border-[1px] border-[#E5E7EB] rounded-[12px] p-4 cursor-pointer hover:shadow-lg transition-all duration-300 group'>
+                }} className={`bg-white border-[1px] border-[#E5E7EB] rounded-[12px] p-4 cursor-pointer hover:shadow-lg transition-all duration-300 group ${isDeletedChild ? 'grayscale opacity-60' : ''}`}>
                     <div className='flex flex-col items-center justify-center gap-4'>
                         <div className='w-20 h-20 rounded-full bg-gradient-to-br from-[#9458E8] to-[#A43EE7] flex items-center justify-center text-white text-2xl font-bold group-hover:scale-110 transition-transform duration-300 shadow-md overflow-hidden'>
                             {finalImageUrl ? (
@@ -45,11 +45,16 @@ export default function Profile({ userData }: { userData: any }) {
                                 (profile.full_name || profile.name || profile.child_name || profile.username || 'P')[0]?.toUpperCase()
                             )}
                         </div>
-                        <div className='text-center'>
+                        <div className='text-center flex flex-col items-center gap-1 w-full'>
                             <h3 className='text-[#111827] font-semibold text-lg truncate w-full' title={profile.full_name || profile.name || profile.child_name || profile.username}>
                                 {profile.full_name || profile.name || profile.child_name || profile.username || 'Unnamed Profile'}
                             </h3>
                             <p className='text-[#6B7280] text-sm'>{profile.age || profile.child_age || 'N/A'} years • {profile.gender || profile.child_gender || 'N/A'}</p>
+                            {isDeletedChild && (
+                                <span className="inline-block bg-red-100 text-red-800 text-[10px] font-[600] px-2 py-0.5 rounded-full mt-1">
+                                    Deleted
+                                </span>
+                            )}
                         </div>
                         <button className='w-full py-2 bg-[#F9FAFB] text-[#4B5563] rounded-lg text-sm font-medium hover:bg-[#9458E8] hover:text-white transition-colors duration-300'>
                             View Details
@@ -67,7 +72,14 @@ export default function Profile({ userData }: { userData: any }) {
                 {renderProfiles()}
             </div>
             {
-                showProfileDetails && <ProfileDetails setShowProfileDetails={setShowProfileDetails} profile={selectedProfile} />
+                showProfileDetails && (
+                    <ProfileDetails
+                        setShowProfileDetails={setShowProfileDetails}
+                        profile={selectedProfile}
+                        userId={userData.id || userData._id}
+                        onRefresh={onRefresh}
+                    />
+                )
             }
         </div>
     )
