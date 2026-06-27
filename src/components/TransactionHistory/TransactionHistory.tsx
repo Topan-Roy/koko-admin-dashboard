@@ -129,6 +129,7 @@ export default function TransactionHistory() {
         search: searchQuery || undefined,
         dateFrom: startDate ? `${startDate}T00:00:00.000Z` : undefined,
         dateTo: endDate ? `${endDate}T23:59:59.999Z` : undefined,
+        isExport: "true",
       };
 
       if (selectedFilter !== "all") {
