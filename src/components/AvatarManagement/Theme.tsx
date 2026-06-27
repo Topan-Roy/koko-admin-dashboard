@@ -69,7 +69,7 @@ export default function Theme() {
   const handleDelete = async (id: string) => {
     try {
       await api.delete(`/api/themes/${id}`);
-      setThemes((prev) => prev.filter((item) => item._id !== id));
+      await fetchThemes();
       toast.success("Item deleted successfully!");
     } catch (err) {
       console.error("Delete failed", err);

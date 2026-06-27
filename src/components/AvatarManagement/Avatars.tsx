@@ -1,4 +1,4 @@
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Trash2, Pencil, RefreshCcw } from "lucide-react";
 import Pagination from "../ui/Pagination";
 import AddAvatarModal from "./AddAvatarModalProps";
 import { useState, useEffect } from "react";
@@ -10,6 +10,7 @@ export interface Avatar {
   _id: string;
   imageUrl: string;
   colors: string[];
+  isDeleted?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -30,7 +31,7 @@ export default function Avatars() {
     try {
       const res = await api.get("/api/avatars");
       const data = res.data?.data ?? res.data;
-      const list = Array.isArray(data) ? data : data?.avatars ?? [];
+      const list = Array.isArray(data) ? data : (data?.avatars ?? []);
       setAvatars(list);
     } catch (err) {
       console.error("Failed to fetch Avatars", err);
@@ -58,11 +59,22 @@ export default function Avatars() {
   const handleDelete = async (id: string) => {
     try {
       await api.delete(`/api/avatars/${id}`);
-      setAvatars((prev) => prev.filter((item) => item._id !== id));
+      await fetchAvatars();
       toast.success("Avatar deleted successfully!");
     } catch (err) {
       console.error("Delete failed", err);
       toast.error("Failed to delete avatar");
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    try {
+      await api.patch(`/api/avatars/${id}/restore`);
+      await fetchAvatars();
+      toast.success("Avatar restored successfully!");
+    } catch (err) {
+      console.error("Restore failed", err);
+      toast.error("Failed to restore avatar");
     }
   };
 
@@ -94,10 +106,12 @@ export default function Avatars() {
           {currentItems.map((item) => (
             <div key={item._id} className="flex flex-col w-40 h-40 ">
               <div
-                className="relative rounded-xl overflow-hidden
+                className={`relative rounded-xl overflow-hidden
                    cursor-pointer shadow-sm border border-gray-200
                    flex items-center justify-center
-                   transition-transform hover:scale-105 group"
+                   transition-transform hover:scale-105 group ${
+                     item.isDeleted ? "grayscale opacity-60" : ""
+                   }`}
                 style={{
                   background: item.colors?.length
                     ? `linear-gradient(90deg,
@@ -115,11 +129,19 @@ export default function Avatars() {
                   <Pencil size={14} className="text-purple-600" />
                 </button>
                 <button
-                  onClick={() => handleDelete(item._id)}
+                  onClick={() =>
+                    item.isDeleted
+                      ? handleRestore(item._id)
+                      : handleDelete(item._id)
+                  }
                   className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/70 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-50 shadow-sm"
-                  title="Delete"
+                  title={item.isDeleted ? "Restore" : "Delete"}
                 >
-                  <Trash2 size={14} className="text-red-500" />
+                  {item.isDeleted ? (
+                    <RefreshCcw size={14} className="text-green-500" />
+                  ) : (
+                    <Trash2 size={14} className="text-red-500" />
+                  )}
                 </button>
                 <img
                   src={item.imageUrl}
@@ -144,7 +166,10 @@ export default function Avatars() {
 
       <AddAvatarModal
         isOpen={isModalOpen}
-        onClose={() => { setIsModalOpen(false); setEditingAvatar(null); }}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingAvatar(null);
+        }}
         apiEndpoint="/api/avatars"
         categoryName="Avatar"
         onSave={handleSaveAvatar}
