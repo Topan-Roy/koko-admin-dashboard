@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, RefreshCcw } from "lucide-react";
 import Pagination from "../ui/Pagination";
 import AddAvatarModal, { type EditItem } from "./AddAvatarModalProps";
 import { useState, useEffect } from "react";
@@ -10,6 +10,7 @@ interface Item {
   title: string;
   icon: string | null;
   colors: string[];
+  isDeleted?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -28,7 +29,7 @@ export default function Items() {
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/api/items");
+      const res = await api.get("/api/admin/items");
       const filtered = res.data.data.items.filter((item: Item) => item.icon);
       setItems(filtered);
     } catch (err) {
@@ -58,10 +59,21 @@ export default function Items() {
     setIsModalOpen(true);
   };
 
+  const handleRestore = async (id: string) => {
+    try {
+      await api.patch(`/api/items/${id}/restore`);
+      fetchItems();
+      toast.success("Item restored successfully!");
+    } catch (err) {
+      console.error("Restore failed", err);
+      toast.error("Failed to restore item");
+    }
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await api.delete(`/api/items/${id}`);
-      setItems((prev) => prev.filter((item) => item._id !== id));
+      fetchItems();
       toast.success("Item deleted successfully!");
     } catch (err) {
       console.error("Delete failed", err);
@@ -98,10 +110,10 @@ export default function Items() {
           {currentItems.map((item) => (
             <div key={item._id} className="flex flex-col w-40 h-40 ">
               <div
-                className="relative rounded-xl overflow-hidden
+                className={`relative rounded-xl overflow-hidden ${item.isDeleted ? "grayscale opacity-60" : ""}
                    cursor-pointer shadow-sm border border-gray-200
                    flex items-center justify-center
-                   transition-transform hover:scale-105 group"
+                   transition-transform hover:scale-105 group`}
                 style={{
                   background: item.colors?.length
                     ? `linear-gradient(90deg,
@@ -119,7 +131,11 @@ export default function Items() {
                   <Pencil size={14} className="text-purple-600" />
                 </button>
                 <button
-                  onClick={() => handleDelete(item._id)}
+                  onClick={() =>
+                    item.isDeleted
+                      ? handleRestore(item._id)
+                      : handleDelete(item._id)
+                  }
                   className="
             absolute top-2 right-2 z-10
             w-8 h-8 rounded-full
@@ -130,9 +146,13 @@ export default function Items() {
             hover:bg-red-50 hover:scale-110
             shadow-sm
           "
-                  title="Delete"
+                  title={item.isDeleted ? "Restore" : "Delete"}
                 >
-                  <Trash2 size={14} className="text-red-500" />
+                  {item.isDeleted ? (
+                    <RefreshCcw size={14} className="text-green-500" />
+                  ) : (
+                    <Trash2 size={14} className="text-red-500" />
+                  )}
                 </button>
                 <img
                   src={item.icon!}

@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, RefreshCcw } from "lucide-react";
 import Pagination from "../ui/Pagination";
 import AddAvatarModal, { type EditItem } from "./AddAvatarModalProps";
 import { useState, useEffect } from "react";
@@ -9,6 +9,7 @@ interface Place {
   title: string;
   icon: string | null;
   colors: string[];
+  isDeleted?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,7 +25,7 @@ export default function Places() {
   const fetchPlaces = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/api/places");
+      const res = await api.get("/api/admin/places");
       const filtered = res.data.data.places.filter((p: Place) => p.icon);
       setPlaces(filtered);
     } catch (err) {
@@ -50,10 +51,22 @@ export default function Places() {
     });
     setIsModalOpen(true);
   };
+
+  const handleRestore = async (id: string) => {
+    try {
+      await api.patch(`/api/places/${id}/restore`);
+      fetchPlaces();
+      toast.success("Item restored successfully!");
+    } catch (err) {
+      console.error("Restore failed", err);
+      toast.error("Failed to restore item");
+    }
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await api.delete(`/api/places/${id}`);
-      setPlaces((prev) => prev.filter((item) => item._id !== id));
+      fetchPlaces();
       toast.success("Item deleted successfully!");
     } catch (err) {
       console.error("Delete failed", err);
@@ -87,10 +100,10 @@ export default function Places() {
           {currentItems.map((item) => (
             <div key={item._id} className="flex flex-col w-40 h-40 ">
               <div
-                className="relative rounded-xl overflow-hidden
+                className={`relative rounded-xl overflow-hidden ${item.isDeleted ? "grayscale opacity-60" : ""}
                    cursor-pointer shadow-sm border border-gray-200
                    flex items-center justify-center
-                   transition-transform hover:scale-105 group"
+                   transition-transform hover:scale-105 group`}
                 style={{
                   background: item.colors?.length
                     ? `linear-gradient(90deg,
@@ -108,7 +121,11 @@ export default function Places() {
                   <Pencil size={14} className="text-purple-600" />
                 </button>
                 <button
-                  onClick={() => handleDelete(item._id)}
+                  onClick={() =>
+                    item.isDeleted
+                      ? handleRestore(item._id)
+                      : handleDelete(item._id)
+                  }
                   className="
             absolute top-2 right-2 z-10
             w-8 h-8 rounded-full
@@ -119,9 +136,13 @@ export default function Places() {
             hover:bg-red-50 hover:scale-110
             shadow-sm
           "
-                  title="Delete"
+                  title={item.isDeleted ? "Restore" : "Delete"}
                 >
-                  <Trash2 size={14} className="text-red-500" />
+                  {item.isDeleted ? (
+                    <RefreshCcw size={14} className="text-green-500" />
+                  ) : (
+                    <Trash2 size={14} className="text-red-500" />
+                  )}
                 </button>
                 <img
                   src={item.icon!}

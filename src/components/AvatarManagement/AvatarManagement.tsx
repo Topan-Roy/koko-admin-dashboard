@@ -54,12 +54,12 @@ export default function AvatarManagement() {
         themeRes,
       ] = await Promise.all([
         fetchWithFallback("/api/avatars"),
-        fetchWithFallback("/api/story-types"),
-        fetchWithFallback("/api/song-types"),
-        fetchWithFallback("/api/characters"),
-        fetchWithFallback("/api/places"),
-        fetchWithFallback("/api/items"),
-        fetchWithFallback("/api/themes"),
+        fetchWithFallback("/api/admin/story-types"),
+        fetchWithFallback("/api/admin/song-types"),
+        fetchWithFallback("/api/admin/characters"),
+        fetchWithFallback("/api/admin/places"),
+        fetchWithFallback("/api/admin/items"),
+        fetchWithFallback("/api/admin/themes"),
       ]);
 
       setCategories([

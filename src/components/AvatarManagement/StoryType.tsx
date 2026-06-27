@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, RefreshCcw } from "lucide-react";
 import Pagination from "../ui/Pagination";
 import AddAvatarModal, { type EditItem } from "./AddAvatarModalProps";
 import { useState, useEffect } from "react";
@@ -9,12 +9,15 @@ interface StoryType {
   title: string;
   icon: string | null;
   colors: string[];
+  isDeleted?: boolean;
   createdAt: string;
   updatedAt: string;
 }
 export default function StoryType() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingStoryType, setEditingStoryType] = useState<EditItem | null>(null);
+  const [editingStoryType, setEditingStoryType] = useState<EditItem | null>(
+    null,
+  );
   const [storyTypes, setStoryTypes] = useState<StoryType[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,10 +42,22 @@ export default function StoryType() {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = storyTypes.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handleRestore = async (id: string) => {
+    try {
+      await api.patch(`/api/story-types/${id}/restore`);
+      fetchStoryTypes();
+      toast.success("Item restored successfully!");
+    } catch (err) {
+      console.error("Restore failed", err);
+      toast.error("Failed to restore item");
+    }
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await api.delete(`/api/story-types/${id}`);
-      setStoryTypes((prev) => prev.filter((item) => item._id !== id));
+      fetchStoryTypes();
       toast.success("Item deleted successfully!");
     } catch (err) {
       console.error("Delete failed", err);
@@ -93,10 +108,10 @@ export default function StoryType() {
           {currentItems.map((item) => (
             <div key={item._id} className="flex flex-col w-40 h-40 ">
               <div
-                className="relative rounded-xl overflow-hidden
+                className={`relative rounded-xl overflow-hidden ${item.isDeleted ? "grayscale opacity-60" : ""}
                    cursor-pointer shadow-sm border border-gray-200
                    flex items-center justify-center
-                   transition-transform hover:scale-105 group"
+                   transition-transform hover:scale-105 group`}
                 style={{
                   background: item.colors?.length
                     ? `linear-gradient(90deg,
@@ -114,7 +129,11 @@ export default function StoryType() {
                   <Pencil size={14} className="text-purple-600" />
                 </button>
                 <button
-                  onClick={() => handleDelete(item._id)}
+                  onClick={() =>
+                    item.isDeleted
+                      ? handleRestore(item._id)
+                      : handleDelete(item._id)
+                  }
                   className="
             absolute top-2 right-2 z-10
             w-8 h-8 rounded-full
@@ -125,9 +144,13 @@ export default function StoryType() {
             hover:bg-red-50 hover:scale-110
             shadow-sm
           "
-                  title="Delete"
+                  title={item.isDeleted ? "Restore" : "Delete"}
                 >
-                  <Trash2 size={14} className="text-red-500" />
+                  {item.isDeleted ? (
+                    <RefreshCcw size={14} className="text-green-500" />
+                  ) : (
+                    <Trash2 size={14} className="text-red-500" />
+                  )}
                 </button>
                 <img
                   src={item.icon!}
