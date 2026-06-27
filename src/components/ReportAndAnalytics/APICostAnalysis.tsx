@@ -10,6 +10,8 @@ import { apicostAnalysisCardData } from './data/data'
 import BarChartForApiCost from './components/BarChartForApiCost'
 import { Progress } from '../ui/progress'
 import api from '../../Context/api'
+import { downloadCSV } from '../../lib/utils'
+import ExportButton from '../ui/ExportButton'
 
 export default function APICostAnalysis() {
     const [analyticsData, setAnalyticsData] = useState<any>(null);
@@ -22,6 +24,39 @@ export default function APICostAnalysis() {
     const [endDate, setEndDate] = useState(() => {
         return new Date().toISOString().split('T')[0];
     });
+
+    const handleExportCost = () => {
+        if (!analyticsData) return;
+        const chartData = analyticsData.charts?.api_cost_comparison || [];
+        if (chartData.length === 0) return;
+
+        const headers = [
+            "Date/Month",
+            "Text API Cost ($)",
+            "Song API Cost ($)",
+            "Image API Cost ($)",
+            "Text to Voice API Cost ($)",
+            "Total API Cost ($)"
+        ];
+
+        const rows = chartData.map((item: any) => {
+            const text = item.text_api_cost || 0;
+            const song = item.song_api_cost || 0;
+            const image = item.image_api_cost || 0;
+            const voice = item.text_to_voice_api_cost || 0;
+            const total = text + song + image + voice;
+            return [
+                item.label || "N/A",
+                text.toFixed(4),
+                song.toFixed(4),
+                image.toFixed(4),
+                voice.toFixed(4),
+                total.toFixed(4)
+            ];
+        });
+
+        downloadCSV(headers, rows, `api_cost_analysis_${startDate}_to_${endDate}.csv`);
+    };
 
     const fetchAnalytics = async () => {
         setLoading(true);
@@ -105,6 +140,10 @@ export default function APICostAnalysis() {
                 <div className='mt-6 px-6 flex items-center justify-between'>
                     <h1 className='font-[700] text-[20.4px] leading-[32px] inter-font'>Reports & Analytics</h1>
                     <div className="flex items-center gap-3">
+                        <ExportButton
+                            onExport={handleExportCost}
+                            disabled={loading || !analyticsData}
+                        />
                         <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-gray-600 inter-font">From:</span>
                             <input
@@ -120,7 +159,7 @@ export default function APICostAnalysis() {
                                 type="date"
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
-                                className="rounded-md border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
+                                className="rounded-xl border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
                             />
                         </div>
                     </div>

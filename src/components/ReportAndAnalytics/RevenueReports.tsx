@@ -10,6 +10,8 @@ import { cardData } from './data/data'
 import BarChartComponent from './components/BarChartComponent'
 import LineChartComponent from './components/LineChartComponent'
 import api from '../../Context/api'
+import { downloadCSV } from '../../lib/utils'
+import ExportButton from '../ui/ExportButton'
 
 export default function RevenueReports() {
     const [analyticsData, setAnalyticsData] = useState<any>(null);
@@ -22,6 +24,49 @@ export default function RevenueReports() {
     const [endDate, setEndDate] = useState(() => {
         return new Date().toISOString().split('T')[0];
     });
+
+    const handleExportRevenue = () => {
+        if (!analyticsData) return;
+        const trends = analyticsData.charts?.revenue_trends || [];
+        const sales = analyticsData.charts?.monthly_sales || [];
+
+        // Build a map of dates/labels
+        const dataMap: Record<string, { subscription: number; coins: number; total: number }> = {};
+        
+        sales.forEach((item: any) => {
+            if (!item.label) return;
+            dataMap[item.label] = {
+                subscription: item.subscription_revenue || 0,
+                coins: item.coin_purchases || 0,
+                total: 0
+            };
+        });
+
+        trends.forEach((item: any) => {
+            if (!item.label) return;
+            if (!dataMap[item.label]) {
+                dataMap[item.label] = { subscription: 0, coins: 0, total: 0 };
+            }
+            dataMap[item.label].total = item.total_revenue || 0;
+        });
+
+        const labels = Object.keys(dataMap);
+        if (labels.length === 0) return;
+
+        const headers = ["Date/Month", "Subscription Revenue ($)", "Coin Purchases ($)", "Total Revenue ($)"];
+        const rows = labels.map(label => {
+            const val = dataMap[label];
+            const total = val.total || (val.subscription + val.coins);
+            return [
+                label,
+                val.subscription.toFixed(2),
+                val.coins.toFixed(2),
+                total.toFixed(2)
+            ];
+        });
+
+        downloadCSV(headers, rows, `revenue_report_${startDate}_to_${endDate}.csv`);
+    };
 
     const fetchAnalytics = async () => {
         setLoading(true);
@@ -90,6 +135,10 @@ export default function RevenueReports() {
                 <div className='mt-6 px-6 flex items-center justify-between'>
                     <h1 className='font-[700] text-[20.4px] leading-[32px] inter-font'>Reports & Analytics</h1>
                     <div className="flex items-center gap-3">
+                        <ExportButton
+                            onExport={handleExportRevenue}
+                            disabled={loading || !analyticsData}
+                        />
                         <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-gray-600 inter-font">From:</span>
                             <input

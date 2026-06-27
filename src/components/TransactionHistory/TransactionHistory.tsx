@@ -6,6 +6,8 @@ import DemoDataBanner from "../ui/DemoDataBanner";
 import Pagination from "../ui/Pagination";
 import api from "../../Context/api";
 import { statusStyle, subscriptionStyle, tableHeader } from "./data/tableData";
+import { downloadCSV } from "../../lib/utils";
+import ExportButton from "../ui/ExportButton";
 
 type TransactionFilter =
   | "all"
@@ -14,7 +16,7 @@ type TransactionFilter =
   | "succeeded"
   | "pending"
   | "failed"
-  | "refunded";
+  | "canceled";
 
 interface ApiTransaction {
   status: string;
@@ -51,7 +53,7 @@ const filterOptions: Array<{ label: string; value: TransactionFilter }> = [
   { label: "Succeeded", value: "succeeded" },
   { label: "Pending", value: "pending" },
   { label: "Failed", value: "failed" },
-  { label: "Refunded", value: "refunded" },
+  { label: "Canceled", value: "canceled" },
 ];
 
 const normalizeKey = (value: string) => value.trim().toLowerCase().replace(/\s+/g, "_");
@@ -115,6 +117,63 @@ export default function TransactionHistory() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const handleExportTransactions = async () => {
+    if (transactions.length === 0) return;
+    try {
+      const params: Record<string, string | number | undefined> = {
+        page: 1,
+        limit: totalResults || 1000,
+        search: searchQuery || undefined,
+        dateFrom: startDate ? `${startDate}T00:00:00.000Z` : undefined,
+        dateTo: endDate ? `${endDate}T23:59:59.999Z` : undefined,
+      };
+
+      if (selectedFilter !== "all") {
+        if (selectedFilter === "subscription" || selectedFilter === "coin_purchase") {
+          params.type = selectedFilter;
+        } else {
+          params.status = selectedFilter;
+        }
+      }
+
+      const response = await api.get("/api/admin/transactions/query", { params });
+      const responseData = response.data.data || response.data;
+      const results: ApiTransaction[] = responseData.results || [];
+      const mapped = results.map(mapTransaction);
+
+      const headers = [
+        "Transaction ID",
+        "User ID",
+        "Name",
+        "Email",
+        "Amount ($)",
+        "Type",
+        "Status",
+        "Date",
+        "Payment Method"
+      ];
+
+      const rows = mapped.map(t => [
+        t.transactionId,
+        t.userId,
+        t.name,
+        t.email,
+        t.amount,
+        t.type,
+        t.status,
+        t.date,
+        t.paymentMethod
+      ]);
+
+      downloadCSV(headers, rows, `transactions_export_${new Date().toISOString().split('T')[0]}.csv`);
+    } catch (error) {
+      console.error("Failed to export transactions:", error);
+      alert("Failed to export transactions. Please try again.");
+    }
+  };
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -126,6 +185,10 @@ export default function TransactionHistory() {
   }, [searchInput]);
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [startDate, endDate]);
+
+  useEffect(() => {
     const fetchTransactions = async () => {
       setLoading(true);
       setErrorMessage("");
@@ -135,6 +198,8 @@ export default function TransactionHistory() {
           page: currentPage,
           limit: itemsPerPage,
           search: searchQuery || undefined,
+          dateFrom: startDate ? `${startDate}T00:00:00.000Z` : undefined,
+          dateTo: endDate ? `${endDate}T23:59:59.999Z` : undefined,
         };
 
         if (selectedFilter !== "all") {
@@ -164,7 +229,7 @@ export default function TransactionHistory() {
     };
 
     fetchTransactions();
-  }, [currentPage, searchQuery, selectedFilter]);
+  }, [currentPage, searchQuery, selectedFilter, startDate, endDate]);
 
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) {
@@ -180,25 +245,49 @@ export default function TransactionHistory() {
       <div className="w-full pb-[24px]">
         <AdminHeader />
 
-        <div className="mt-6 flex items-center justify-between gap-4 px-6">
+        <div className="mt-6 flex items-center justify-between gap-4 px-6 flex-wrap md:flex-nowrap">
           <h1 className="inter-font text-[20.4px] font-[700] leading-[32px] text-[#111827]">
             Transaction History
           </h1>
 
-          <select
-            value={selectedFilter}
-            onChange={(event) => {
-              setCurrentPage(1);
-              setSelectedFilter(event.target.value as TransactionFilter);
-            }}
-            className="rounded-[6px] border-[1px] border-[#D1D5DB] px-[13px] py-[9px] text-[14px] text-[#374151] outline-none"
-          >
-            {filterOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
+            <ExportButton
+              onExport={handleExportTransactions}
+              disabled={transactions.length === 0}
+            />
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-600 inter-font">From:</span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="rounded-xl border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font bg-white shadow-sm"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-600 inter-font">To:</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="rounded-xl border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font bg-white shadow-sm"
+              />
+            </div>
+            <select
+              value={selectedFilter}
+              onChange={(event) => {
+                setCurrentPage(1);
+                setSelectedFilter(event.target.value as TransactionFilter);
+              }}
+              className="rounded-xl border-[1px] border-[#D1D5DB] px-[13px] py-[9.5px] text-[14px] text-[#374151] outline-none bg-white shadow-sm"
+            >
+              {filterOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="mt-6 px-6">

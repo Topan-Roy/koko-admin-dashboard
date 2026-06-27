@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
+import SideBar from '../ui/SideBar'
+import AdminHeader from '../ui/AdminHeader'
 import RevenueIcon from '../svgs/RevenueIcon'
 import { Link } from 'react-router-dom'
 import ApiIcon from '../svgs/ApiIcon'
 import CostRevenueIcon from '../svgs/CostRevenueIcon'
 import { cardDataForCostAndrevenue } from './data/data'
-import SideBar from '../ui/SideBar'
-import AdminHeader from '../ui/AdminHeader'
 import DemoDataBanner from '../ui/DemoDataBanner'
 import LineChartForCostRevenue from './components/LineChartForCostRevenue'
 import api from '../../Context/api'
+import { downloadCSV } from '../../lib/utils'
+import ExportButton from '../ui/ExportButton'
 
 export default function CostVSRevenue() {
     const [analyticsData, setAnalyticsData] = useState<any>(null);
@@ -21,6 +23,33 @@ export default function CostVSRevenue() {
     const [endDate, setEndDate] = useState(() => {
         return new Date().toISOString().split('T')[0];
     });
+
+    const handleExportCostVSRevenue = () => {
+        if (!analyticsData) return;
+        const chartData = analyticsData.charts?.cost_revenue_comparison || [];
+        if (chartData.length === 0) return;
+
+        const headers = [
+            "Date/Month",
+            "Total Revenue ($)",
+            "Total API Cost ($)",
+            "Net Profit ($)"
+        ];
+
+        const rows = chartData.map((item: any) => {
+            const rev = item.revenue || 0;
+            const cost = item.api_cost || 0;
+            const profit = item.net_profit || (rev - cost);
+            return [
+                item.label || "N/A",
+                rev.toFixed(2),
+                cost.toFixed(2),
+                profit.toFixed(2)
+            ];
+        });
+
+        downloadCSV(headers, rows, `cost_vs_revenue_${startDate}_to_${endDate}.csv`);
+    };
 
     const fetchAnalytics = async () => {
         setLoading(true);
@@ -88,6 +117,10 @@ export default function CostVSRevenue() {
                 <div className='mt-6 px-6 flex items-center justify-between'>
                     <h1 className='font-[700] text-[20.4px] leading-[32px] inter-font'>Reports & Analytics</h1>
                     <div className="flex items-center gap-3">
+                        <ExportButton
+                            onExport={handleExportCostVSRevenue}
+                            disabled={loading || !analyticsData}
+                        />
                         <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-gray-600 inter-font">From:</span>
                             <input
@@ -103,7 +136,7 @@ export default function CostVSRevenue() {
                                 type="date"
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
-                                className="rounded-md border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
+                                className="rounded-xl border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font"
                             />
                         </div>
                     </div>
