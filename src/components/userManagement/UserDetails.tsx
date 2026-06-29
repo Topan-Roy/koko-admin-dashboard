@@ -1,10 +1,11 @@
 import React from "react";
 import SideBar from "../ui/SideBar";
 import AdminHeader from "../ui/AdminHeader";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useLocation, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import UserDetailsTable from "./components/UserDetailsTable";
 import UserDetailsActivity from "./components/UserDetailsActivity";
+import UserDetailsFinance from "./components/UserDetailsFinance";
 import Profile from "./components/Profile";
 import api from "../../Context/api";
 
@@ -12,14 +13,23 @@ enum TapData {
   UserDetails = "User Details",
   Activity = "Activity",
   Profiles = "Profiles",
+  Finance = "Finance",
 }
 
 export default function UserDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tabActive, setTabActive] = React.useState<TapData>(
-    TapData.UserDetails,
+    (searchParams.get("tab") as TapData) || TapData.UserDetails,
   );
+
+  const handleTabChange = (tab: TapData) => {
+    setTabActive(tab);
+    setSearchParams({ tab });
+  };
+  const location = useLocation();
+  const stateData = location.state as { subscription?: string, joined?: string } | null;
   const [userData, setUserData] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
   const [statusActionLoading, setStatusActionLoading] = React.useState(false);
@@ -107,9 +117,10 @@ export default function UserDetails() {
   };
 
   const showTapComponent = {
-    [TapData.UserDetails]: <UserDetailsTable userData={userData} onRefresh={() => fetchUser(false)} />,
+    [TapData.UserDetails]: <UserDetailsTable userData={userData} onRefresh={() => fetchUser(false)} subscriptionOverride={stateData?.subscription} joinedOverride={stateData?.joined} />,
     [TapData.Activity]: <UserDetailsActivity />,
     [TapData.Profiles]: <Profile userData={userData} onRefresh={() => fetchUser(false)} />,
+    [TapData.Finance]: <UserDetailsFinance userId={id!} userData={userData} />,
   };
 
   if (loading)
@@ -163,22 +174,28 @@ export default function UserDetails() {
           <div className="bg-white rounded-[8px] p-6">
             <div className="py-4 px-2 border-b-[1px] border-[#E5E7EB] flex items-center justify-start gap-6">
               <button
-                onClick={() => setTabActive(TapData.UserDetails)}
+                onClick={() => handleTabChange(TapData.UserDetails)}
                 className={`${tabActive === TapData.UserDetails ? "text-[#9458E8]" : "text-[#6B7280]"}  inter-font font-[500] text-[11.9px] leading-[20px] cursor-pointer`}
               >
                 User Details
               </button>
               <button
-                onClick={() => setTabActive(TapData.Activity)}
+                onClick={() => handleTabChange(TapData.Activity)}
                 className={`${tabActive === TapData.Activity ? "text-[#9458E8]" : "text-[#6B7280]"} inter-font font-[500] text-[11.9px] leading-[20px] cursor-pointer`}
               >
                 Activity
               </button>
               <button
-                onClick={() => setTabActive(TapData.Profiles)}
+                onClick={() => handleTabChange(TapData.Profiles)}
                 className={`${tabActive === TapData.Profiles ? "text-[#9458E8]" : "text-[#6B7280]"} inter-font font-[500] text-[11.9px] leading-[20px] cursor-pointer`}
               >
                 Profiles ({(userData?.profiles || userData?.children || userData?.sub_users || userData?.subUsers || []).length})
+              </button>
+              <button
+                onClick={() => handleTabChange(TapData.Finance)}
+                className={`${tabActive === TapData.Finance ? "text-[#9458E8]" : "text-[#6B7280]"} inter-font font-[500] text-[11.9px] leading-[20px] cursor-pointer`}
+              >
+                Finance
               </button>
             </div>
             {showTapComponent[tabActive as TapData]}

@@ -1,12 +1,12 @@
 import React from "react";
 import CreditTokensModal from "./CreditTokensModal";
 
-export default function UserDetailsTable({ userData, onRefresh }: { userData: any; onRefresh: () => void }) {
+export default function UserDetailsTable({ userData, onRefresh, subscriptionOverride, joinedOverride }: { userData: any; onRefresh: () => void, subscriptionOverride?: string, joinedOverride?: string }) {
     const [showCreditModal, setShowCreditModal] = React.useState(false);
     if (!userData) return null;
     
     const isUserActive = Boolean(userData.activeStatus ?? userData.is_active);
-    const joinedDate = userData.joined || userData.created_at || userData.createdAt;
+    const joinedDate = joinedOverride || userData.joined || userData.created_at || userData.createdAt;
 
     return (
         <div className="w-full bg-white rounded-xl border border-gray-200 p-6 mt-6 inter-font">
@@ -48,7 +48,7 @@ export default function UserDetailsTable({ userData, onRefresh }: { userData: an
                 <div>
                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Subscription</span>
                     <span className="text-sm font-medium text-gray-900 mt-1 block">
-                        {userData.subscription || "Free"}
+                        {subscriptionOverride || userData.subscription || "Free"}
                     </span>
                 </div>
 
@@ -64,7 +64,7 @@ export default function UserDetailsTable({ userData, onRefresh }: { userData: an
                 <div>
                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Profiles Created</span>
                     <span className="text-sm font-medium text-gray-900 mt-1 block">
-                        {userData.main_user_settings?.sub_users_count || 0} / {userData.main_user_settings?.max_sub_users || 4} Profiles
+                        {userData.children?.length || userData.main_user_settings?.sub_users_count || 0} / {userData.main_user_settings?.max_sub_users || 4} Profiles
                     </span>
                 </div>
 

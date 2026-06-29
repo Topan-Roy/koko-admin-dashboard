@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Download } from "lucide-react";
 import SideBar from "../ui/SideBar";
 import AdminHeader from "../ui/AdminHeader";
 import Search from "../svgs/Search";
@@ -44,7 +45,9 @@ const getUserStatus = (user: any): UserStatus => {
 export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [timeRange, setTimeRange] = useState("1");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [allUsers, setAllUsers] = useState<UserTableRow[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserTableRow[]>([]);
@@ -61,7 +64,8 @@ export default function UserManagement() {
           page: 1,
           limit: fetchLimit,
           search: searchQuery || undefined,
-          months: timeRange || undefined,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
         },
       });
 
@@ -92,11 +96,78 @@ export default function UserManagement() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter, timeRange]);
+  }, [searchQuery, statusFilter, startDate, endDate]);
 
   useEffect(() => {
     fetchUsers();
-  }, [searchQuery, timeRange]);
+  }, [searchQuery, startDate, endDate]);
+
+  const handleExport = async () => {
+    if (totalResults === 0) {
+      alert("No data to export.");
+      return;
+    }
+    setIsExporting(true);
+    try {
+      const response = await api.get("/api/admin/users/query", {
+        params: {
+          page: 1,
+          limit: Math.max(totalResults, 1000),
+          search: searchQuery || undefined,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
+        },
+      });
+
+      const dataRes = response.data.data || response.data;
+      const results = dataRes.results || [];
+      
+      if (results.length === 0) {
+        alert("No data found to export.");
+        return;
+      }
+
+      const headers = [
+        "User ID", "User Name", "Email", "Active Status", 
+        "Profile Created", "Story Created", "Song Created", 
+        "Coins", "Subscription", "Joined Date"
+      ];
+      
+      const csvRows = [headers.join(",")];
+      
+      results.forEach((user: any) => {
+        const row = [
+          `"${user.userId || ""}"`,
+          `"${(user.user || "").replace(/"/g, '""')}"`,
+          `"${(user.email || "").replace(/"/g, '""')}"`,
+          getUserStatus(user),
+          user.profileCreated || 0,
+          user.storyCreated || 0,
+          user.songCreated || 0,
+          user.coins || 0,
+          `"${user.subscription || "Free"}"`,
+          `"${new Date(user.joined).toLocaleDateString()}"`
+        ];
+        csvRows.push(row.join(","));
+      });
+      
+      const csvContent = csvRows.join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `users_export_${startDate || 'all'}_to_${endDate || 'all'}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err: any) {
+      console.error("Export failed:", err);
+      alert("Failed to export data. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   useEffect(() => {
     const nextFilteredUsers =
@@ -139,22 +210,43 @@ export default function UserManagement() {
       <div className="w-full pb-6">
         <AdminHeader />
 
-        <div className="my-6 flex items-center justify-between gap-4 px-6">
+        <div className="my-6 flex flex-wrap items-center justify-between gap-4 px-6">
           <h2 className="font-[700] text-[20.4px] leading-[32px] text-[#111827] inter-font">
             User Management
           </h2>
 
-          <div className="relative">
-            <select
-              value={timeRange}
-              onChange={(event) => setTimeRange(event.target.value)}
-              className="h-[42px] rounded-[8px] border border-[#E5E7EB] bg-white px-4 pr-9 text-[13px] font-[500] text-[#374151] shadow-[0_4px_12px_rgba(15,23,42,0.04)] outline-none inter-font"
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-600 inter-font">From:</span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="h-[42px] rounded-[8px] border border-[#E5E7EB] bg-white px-3 text-[13px] font-[500] text-[#374151] shadow-[0_4px_12px_rgba(15,23,42,0.04)] outline-none inter-font"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-600 inter-font">To:</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="h-[42px] rounded-[8px] border border-[#E5E7EB] bg-white px-3 text-[13px] font-[500] text-[#374151] shadow-[0_4px_12px_rgba(15,23,42,0.04)] outline-none inter-font"
+              />
+            </div>
+            
+            <button
+              onClick={handleExport}
+              disabled={isExporting || totalResults === 0}
+              className={`flex h-[42px] items-center gap-2 px-4 rounded-[8px] text-[13px] font-[500] transition-colors ${
+                isExporting || totalResults === 0
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-gradient-to-r from-[#9458E8] to-[#CA00E5] text-white hover:opacity-90 shadow-sm"
+              }`}
             >
-              <option value="1">Last 1 month</option>
-              <option value="3">Last 3 months</option>
-              <option value="6">Last 6 months</option>
-              <option value="12">Last 12 months</option>
-            </select>
+              <Download size={16} />
+              {isExporting ? "Exporting..." : "Export"}
+            </button>
           </div>
         </div>
 
@@ -305,13 +397,16 @@ export default function UserManagement() {
                         <td className="px-3 py-[9px] text-[13px] font-[400] text-[#4B5563] inter-font">
                           {user.joined}
                         </td>
-                        <td className="px-6 py-[9px] text-[12px] font-[500] inter-font">
-                          <Link
-                            to={`/dashboard/user-management/${user.id}`}
-                            className="text-[#A43EE7] hover:text-[#8E2DE2]"
-                          >
-                            View Details
-                          </Link>
+                        <td className="px-3 py-[9px]">
+                          <div className="flex justify-end pr-[24px]">
+                            <Link
+                              to={`/dashboard/user-management/${user.id}`}
+                              state={{ subscription: user.subscription, joined: user.joined }}
+                              className="w-[101px] h-[34px] border-[1px] border-[#E5E7EB] rounded-[6px] flex items-center justify-center font-[500] text-[11.9px] leading-[20px] text-[#374151] inter-font cursor-pointer"
+                            >
+                              View Details
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))

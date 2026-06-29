@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Download } from "lucide-react";
 import SideBar from "../ui/SideBar";
 import AdminHeader from "../ui/AdminHeader";
 import Pagination from "../ui/Pagination";
@@ -207,7 +208,63 @@ export default function Rankings() {
   const [tabData, setTabData] = useState<PaginatedCategory>(emptyCategory());
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [loadingTab, setLoadingTab] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleExport = async () => {
+    if (tabData.totalResults === 0) {
+      alert("No data to export.");
+      return;
+    }
+    setIsExporting(true);
+    try {
+      const activeTabMeta = TABS.find((t) => t.key === activeTab)!;
+      const res = await api.get("/api/admin/rankings", {
+        params: { 
+          category: activeTabMeta.apiCategory, 
+          page: 1, 
+          limit: Math.max(tabData.totalResults, 100),
+          startDate: startDate || undefined,
+          endDate: endDate || undefined
+        },
+      });
+      
+      const payload: PaginatedCategory = res.data.data[activeTab];
+      if (!payload || !payload.results || payload.results.length === 0) {
+        alert("No data found to export.");
+        return;
+      }
+
+      const headers = ["Rank", "Name", "Usage Count", "Category"];
+      const csvRows = [headers.join(",")];
+      
+      payload.results.forEach((item, index) => {
+        const row = [
+          index + 1,
+          `"${(item.name || "Unknown").replace(/"/g, '""')}"`,
+          item.usageCount,
+          `"${activeTabMeta.label}"`
+        ];
+        csvRows.push(row.join(","));
+      });
+      
+      const csvContent = csvRows.join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `rankings_${activeTabMeta.label.replace(/\s+/g, '_')}_${startDate}_to_${endDate}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err: any) {
+      console.error("Export failed:", err);
+      alert("Failed to export data. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Track whether overview has been loaded once
   const overviewLoaded = useRef(false);
@@ -352,6 +409,19 @@ export default function Rankings() {
                 className="rounded-xl border-[1px] border-slate-200 p-2 outline-none cursor-pointer text-sm inter-font bg-white shadow-sm"
               />
             </div>
+            
+            <button
+              onClick={handleExport}
+              disabled={isExporting || tabData.totalResults === 0}
+              className={`flex items-center gap-2 px-4 py-2 ml-2 rounded-xl text-sm font-medium transition-colors ${
+                isExporting || tabData.totalResults === 0
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-gradient-to-r from-[#9458E8] to-[#CA00E5] text-white hover:opacity-90 shadow-sm"
+              }`}
+            >
+              <Download size={16} />
+              {isExporting ? "Exporting..." : "Export"}
+            </button>
           </div>
         </div>
 
